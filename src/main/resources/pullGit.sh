@@ -12,7 +12,10 @@ do
 	then
 	   #Get repository name from the URL
 	   REPO_NAME=$(echo $REPO_URL | cut -d'/' -f5)
+
+       cd $OUTPUT_PATH/$REPO_NAME
+
 	   #Make a directory for repository and clone
-	   git pull $REPO_URL $OUTPUT_PATH/$REPO_NAME  
+	   git pull $REPO_URL
 	fi
 done 
