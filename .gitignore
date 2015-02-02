@@ -34,8 +34,6 @@
 .idea/workspace.xml
 Dependency.txt
 dependencyManager.iml
-src/main/java/org/wso2/sample/Main.java
-src/main/java/org/wso2/sample/util/FileSearch.java
 target/classes/cloneGit.sh
 target/classes/generateGraphJson.sh
 target/classes/org/wso2/sample/DependencyManager.class
