@@ -2,18 +2,25 @@ package org.wso2.sample;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.wso2.sample.library.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.wso2.sample.util.Booter;
+import org.wso2.sample.util.FileSearch;
 
 
 /**
@@ -33,9 +40,9 @@ public class DependencyManager {
         DependencyManager.loadPOMFiles(rootPath);
         String json;
 
-        for (int i = 0; i < pomFiles.size(); i++) {
-            DependencyManager.loadPOM(pomFiles.get(i), rootPath);
-        }
+
+        dependencies = DependencyManager.loadPOM(rootPath);
+
 
         for (int i = 0; i < pomFiles.size(); i++) {
             DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
@@ -54,8 +61,8 @@ public class DependencyManager {
         json = "digraph {";
 
         for (int i = 0; i < uniqueDependencies.size(); i++) {
-            //json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
-            json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
+            json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
+           // json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
         }
 
         json += "}";
@@ -83,39 +90,89 @@ public class DependencyManager {
 
     }
 
-    public static void loadPOM(File fXmlFile, String rootPath) {
-        try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(fXmlFile);
+    public static ArrayList<Dependency> loadPOM(String rootPath) {
 
-            doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("dependency");
+        FileSearch fileSearch = new FileSearch();
+        String pathArray[]=fileSearch.getPath(rootPath);
+        ArrayList<Dependency> snapshots = new ArrayList<Dependency>();
 
-                for (int temp = 0; temp < nList.getLength(); temp++) {
-
-                    Node nNode = nList.item(temp);
+        for(int i =0;i<pathArray.length;i++){
+            try {
 
 
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                System.out.println(pathArray[i].split(File.separator)[rootPath.split(File.separator).length]);
 
-                        Element eElement = (Element) nNode;
+                File file = new File(pathArray[i]);
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                DocumentBuilder db = dbf.newDocumentBuilder();
 
-                        if (eElement.getElementsByTagName("version").item(0) != null &&
-                                eElement.getElementsByTagName("version").item(0).getTextContent().toUpperCase().contains("SNAPSHOT")) {
+                System.out.println(pathArray[i]);
 
-                            Dependency snapshot = new Dependency();
-                            snapshot.setGroupId(eElement.getElementsByTagName("groupId").item(0).getTextContent());
-                            snapshot.setArtifactId(eElement.getElementsByTagName("artifactId").item(0).getTextContent());
-                            snapshot.setVersion(eElement.getElementsByTagName("version").item(0).getTextContent());
-                            snapshot.setRepositoryDepends(fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]);
-                            dependencies.add(snapshot);
+                String groupId=null;
+                String artifactId=null;
+                String version=null;
+
+                Document doc;
+                try {
+                    doc = db.parse(file);
+                    doc.getDocumentElement().normalize();
+                    NodeList nodeLst = doc.getElementsByTagName("project");
+
+
+                    RepositorySystem system = Booter.newRepositorySystem();
+                    List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
+
+                    repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
+                            "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
+                    repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
+                            "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
+
+                    DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
+
+
+
+                    for (int s = 0; s < nodeLst.getLength(); s++) {
+                        Node fstNode = nodeLst.item(s);
+
+                        if (fstNode.getNodeType() == Node.ELEMENT_NODE) {
+                            Element newElement = (Element) fstNode;
+                            NodeList groupIdElmntLst = newElement.getElementsByTagName("groupId");
+                            Element groupIdElmnt = (Element) groupIdElmntLst.item(0);
+                            NodeList groupIdNodeList = groupIdElmnt.getChildNodes();
+                            groupId = ((Node) groupIdNodeList.item(0)).getNodeValue();
+
+                            NodeList artifactIdElmntLst = newElement.getElementsByTagName("artifactId");
+                            Element artfIdElmnt = (Element) artifactIdElmntLst.item(0);
+                            NodeList artifIdNodeList = artfIdElmnt.getChildNodes();
+                            artifactId = ((Node) artifIdNodeList.item(0)).getNodeValue();
+
+                            if(artifactId.contains("parent")){
+                                int index = artifactId.indexOf("parent");
+                                artifactId = artifactId.substring(0,index-1);
+                            }
+
+                            NodeList versionElmntLst = newElement.getElementsByTagName("version");
+                            Element versionElmnt = (Element) versionElmntLst.item(0);
+                            NodeList versionNodeList = versionElmnt.getChildNodes();
+                            version = ((Node) versionNodeList.item(0)).getNodeValue();
+
+                            snapshots.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session, repositories, pathArray[i].split(File.separator)[rootPath.split(File.separator).length]));
+
                         }
+
                     }
+
+                } catch (Exception e) {
+                    System.out.println("Document parse error");
+                }
+
+
+            } catch (ParserConfigurationException e) {
+                System.out.println("DocumentBuilder Error");
             }
-        } catch (Exception e) {
-            System.out.println(e.getMessage() + " " + fXmlFile.getPath());
         }
+
+        return snapshots;
     }
 
     public static void loadSourceRepositories(File fXmlFile, String rootPath) {
