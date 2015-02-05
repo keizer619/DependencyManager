@@ -43,6 +43,12 @@ public class DependencyManager {
 
         dependencies = DependencyManager.loadPOM(rootPath);
 
+       /* for (int i = 0; i < pomFiles.size(); i++) {
+            DependencyManager.loadDependencies(pomFiles.get(i), rootPath);
+        }*/
+
+
+
 
         for (int i = 0; i < pomFiles.size(); i++) {
             DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
@@ -98,10 +104,6 @@ public class DependencyManager {
 
         for(int i =0;i<pathArray.length;i++){
             try {
-
-
-                System.out.println(pathArray[i].split(File.separator)[rootPath.split(File.separator).length]);
-
                 File file = new File(pathArray[i]);
                 DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
                 DocumentBuilder db = dbf.newDocumentBuilder();
@@ -173,6 +175,77 @@ public class DependencyManager {
         }
 
         return snapshots;
+    }
+
+
+    public static void loadDependencies(File fXmlFile, String rootPath) {
+        try {
+
+            String artifactId = "";
+            String version = "";
+            String groupId = "";
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(fXmlFile);
+            ArrayList<Dependency> snapshots = new ArrayList<Dependency>();
+
+            doc.getDocumentElement().normalize();
+
+            XPath xPath =  XPathFactory.newInstance().newXPath();
+            String expression = DependencyManager.XPATH_ARTIFACT_SOURCE;
+            NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+
+            RepositorySystem system = Booter.newRepositorySystem();
+            List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
+
+            repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
+                    "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
+            repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
+                    "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
+
+            DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
+
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+
+                Node nNode = nList.item(temp);
+
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    artifactId = nNode.getTextContent();
+                }
+            }
+
+            xPath =  XPathFactory.newInstance().newXPath();
+            nList = (NodeList) xPath.compile("parent/groupId").evaluate(doc, XPathConstants.NODESET);
+
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+
+                Node nNode = nList.item(temp);
+
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    groupId = nNode.getTextContent();
+                }
+            }
+
+            xPath =  XPathFactory.newInstance().newXPath();
+            nList = (NodeList) xPath.compile("parent/version").evaluate(doc, XPathConstants.NODESET);
+
+            for (int temp = 0; temp < nList.getLength(); temp++) {
+
+                Node nNode = nList.item(temp);
+
+                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+                    version = nNode.getTextContent();
+                }
+            }
+
+
+            dependencies.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session, repositories, fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]));
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage() + " " + fXmlFile.getPath());
+        }
     }
 
     public static void loadSourceRepositories(File fXmlFile, String rootPath) {

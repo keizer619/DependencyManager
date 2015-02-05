@@ -94,28 +94,6 @@ public class FileSearch {
 		parent=parent.substring(0,x);
 		return parent;
 	}
-	/*
-  public static void main(String args[]){
-	  
-		DependencyVersion depV = new DependencyVersion();
-		
-	  int count = depV.getPath().length();
-	  String[] abc = getPath();
 
-	  for (int i =0;i<abc.length;i++){
-		  System.out.println(abc[i]);
-		  String sPath=abc[i];
-
-		  int pathCount=sPath.length();
-				  
-		  String parent=sPath.substring(count+1,pathCount);
-		  int x = parent.indexOf('/');
-		  parent=parent.substring(0,x);		  
-		  
-	  }
-
-  }
-  */
-	 
 
 }
