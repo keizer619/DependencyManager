@@ -28,42 +28,6 @@ import java.util.List;
 public class GetDirectDependencies
 {
 
-    public static void main( String[] args )
-        throws Exception {
-        processAether();
-    }
-
-    public static void processAether()
-        throws Exception {
-
-        RepositorySystem system = Booter.newRepositorySystem();
-        List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
-
-        repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
-                "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
-        repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
-                "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
-
-        DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
-
-
-    //   loadDependencies("org.wso2.esb", "wso2esb", "4.9.0-SNAPSHOT", system, session, repositories, "");
-      List<org.wso2.sample.library.Dependency> dependencies = loadDependencies("org.wso2.brs", "wso2brs", "2.2.0-SNAPSHOT", system, session, repositories, "");
-        //loadDependencies("org.wso2.balana", "balana", "1.0.0.wso2v8-SNAPSHOT", system, session, repositories);
-     //  loadDependencies("org.wso2.governance", "governance", "5.0.0", system, session, repositories);
-        //loadDependencies("org.wso2.carbon", "carbon-mediation", "4.3.0-SNAPSHOT");
-
-       // loadDependencies("org.wso2.appserver", "wso2as","6.0.0-SNAPSHOT", system, session, repositories);
-       // loadDependencies("org.wso2.bam", "wso2bam","3.0.0-SNAPSHOT", system, session, repositories, "");
-
-
-        System.out.println("----");
-        for (int i = 0; i < dependencies.size(); i++)
-        {
-            System.out.println(dependencies.get(i).getGroupId() + " - " + dependencies.get(i).getArtifactId() + " - "+ dependencies.get(i).getVersion());
-        }
-    }
-
     public static ArrayList<org.wso2.sample.library.Dependency> loadDependencies(String groupId, String artifactId, String version, RepositorySystem system,
                                         DefaultRepositorySystemSession session, List<RemoteRepository> repositories, String currentRepository)
             throws Exception {
@@ -105,8 +69,6 @@ public class GetDirectDependencies
             }
 
         }
-
-
         return  dependencies;
     }
 

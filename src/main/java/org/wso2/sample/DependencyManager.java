@@ -47,9 +47,6 @@ public class DependencyManager {
             DependencyManager.loadDependencies(pomFiles.get(i), rootPath);
         }*/
 
-
-
-
         for (int i = 0; i < pomFiles.size(); i++) {
             DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
         }
@@ -58,7 +55,8 @@ public class DependencyManager {
 
             if (dependencies.get(i).getRepositorySource() != null) {
 
-                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(), dependencies.get(i).getRepositorySource() )) {
+                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
+                        dependencies.get(i).getRepositorySource() )) {
                   uniqueDependencies.add(dependencies.get(i));
                 }
             }
@@ -67,8 +65,12 @@ public class DependencyManager {
         json = "digraph {";
 
         for (int i = 0; i < uniqueDependencies.size(); i++) {
-            json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
-           // json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"' +uniqueDependencies.get(i).getRepositorySource() + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
+            json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"'
+                    + uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
+
+           // json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->"
+           // + '"' +uniqueDependencies.get(i).getRepositorySource()
+           // + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
         }
 
         json += "}";
@@ -158,7 +160,9 @@ public class DependencyManager {
                             NodeList versionNodeList = versionElmnt.getChildNodes();
                             version = ((Node) versionNodeList.item(0)).getNodeValue();
 
-                            snapshots.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session, repositories, pathArray[i].split(File.separator)[rootPath.split(File.separator).length]));
+                            snapshots.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version,
+                                    system, session, repositories,
+                                    pathArray[i].split(File.separator)[rootPath.split(File.separator).length]));
 
                         }
 
@@ -240,7 +244,8 @@ public class DependencyManager {
             }
 
 
-            dependencies.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session, repositories, fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]));
+            dependencies.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session,
+                        repositories, fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]));
 
 
         } catch (Exception e) {
@@ -268,7 +273,8 @@ public class DependencyManager {
 
                     for (int i = 0; i < dependencies.size(); i++) {
                         if ( dependencies.get(i).getArtifactId().equals(nNode.getTextContent())) {
-                            dependencies.get(i).setRepositorySource(fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]);
+                            dependencies.get(i).setRepositorySource(fXmlFile.getPath().split(File.separator)
+                                                                            [rootPath.split(File.separator).length]);
                         }
                     }
                 }
@@ -285,11 +291,45 @@ public class DependencyManager {
         }
 
         for (int i = 0; i < unique.size(); i++) {
-          if (unique.get(i).getRepositorySource().equals(repoSource) && unique.get(i).getRepositoryDepends().equals(repoDepends)) {
+          if (unique.get(i).getRepositorySource().equals(repoSource)
+                  && unique.get(i).getRepositoryDepends().equals(repoDepends)) {
               return  true;
           }
         }
         return  false;
     }
+
+
+    public static void processAether()
+            throws Exception {
+
+        RepositorySystem system = Booter.newRepositorySystem();
+        List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
+
+        repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
+                "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
+        repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
+                "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
+
+        DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
+
+
+        //   loadDependencies("org.wso2.esb", "wso2esb", "4.9.0-SNAPSHOT", system, session, repositories, "");
+        List<org.wso2.sample.library.Dependency> dependencies = GetDirectDependencies.loadDependencies("org.wso2.brs",
+                                                    "wso2brs", "2.2.0-SNAPSHOT", system, session, repositories, "");
+        //loadDependencies("org.wso2.balana", "balana", "1.0.0.wso2v8-SNAPSHOT", system, session, repositories);
+        //  loadDependencies("org.wso2.governance", "governance", "5.0.0", system, session, repositories);
+        //loadDependencies("org.wso2.carbon", "carbon-mediation", "4.3.0-SNAPSHOT");
+
+        // loadDependencies("org.wso2.appserver", "wso2as","6.0.0-SNAPSHOT", system, session, repositories);
+        // loadDependencies("org.wso2.bam", "wso2bam","3.0.0-SNAPSHOT", system, session, repositories, "");
+
+
+        System.out.println("----");
+        for (int i = 0; i < dependencies.size(); i++)
+        {
+            System.out.println(dependencies.get(i).getGroupId() + " - " + dependencies.get(i).getArtifactId() + " - "
+                                                        + dependencies.get(i).getVersion());
+        }
 
 }
