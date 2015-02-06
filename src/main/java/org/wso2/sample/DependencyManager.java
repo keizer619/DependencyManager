@@ -1,23 +1,16 @@
 package org.wso2.sample;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-
-import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.wso2.sample.library.Dependency;
 import org.w3c.dom.Document;
@@ -26,8 +19,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wso2.sample.util.Booter;
 import org.wso2.sample.util.FileSearch;
-import org.wso2.sample.util.Writer;
-
 
 /**
  * Created by tharik on 1/29/15.
@@ -52,6 +43,9 @@ public class DependencyManager {
         String json;
 
         dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.cep", "wso2cep", "4.0.0-SNAPSHOT", "product-cep"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.bam", "wso2bam-parent", "3.0.0-SNAPSHOT", "product-bam"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.mb", "mb-parent", "3.0.0-SNAPSHOT", "product-mb"));
+
 
 
         for (int i = 0; i < pomFiles.size(); i++) {
@@ -110,9 +104,6 @@ public class DependencyManager {
     }
 
     public static ArrayList<Dependency> loadPOM(String rootPath) {
-
-
-
         FileSearch fileSearch = new FileSearch();
         String pathArray[]=fileSearch.getPath(rootPath);
         ArrayList<Dependency> snapshots = new ArrayList<Dependency>();
@@ -193,51 +184,6 @@ public class DependencyManager {
         }
 
         return snapshots;
-    }
-
-
-    public static void loadDependencies(File fXmlFile, String rootPath) {
-        try {
-
-            String artifactId = "";
-            String version = "";
-            String groupId = "";
-
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(fXmlFile);
-            ArrayList<Dependency> snapshots = new ArrayList<Dependency>();
-
-            doc.getDocumentElement().normalize();
-
-            artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
-            groupId = getXpathValue(doc, "/project/parent/groupId");
-            version = getXpathValue(doc, "/project/parent/version");
-
-          /*  if(artifactId.contains("parent")){
-                int index = artifactId.indexOf("parent");
-                artifactId = artifactId.substring(0,index-1);
-            }*/
-
-            RepositorySystem system = Booter.newRepositorySystem();
-            List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
-
-            repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
-                    "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
-            repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
-                    "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
-
-            DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
-
-
-
-            dependencies.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session,
-                        repositories, fXmlFile.getPath().split(File.separator)[rootPath.split(File.separator).length]));
-
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage() + " " + fXmlFile.getPath());
-        }
     }
 
     public static String getXpathValue(Document doc, String expression)
