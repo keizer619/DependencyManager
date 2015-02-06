@@ -1,6 +1,8 @@
 package org.wso2.sample;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +13,11 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.wso2.sample.library.Dependency;
 import org.w3c.dom.Document;
@@ -21,6 +26,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wso2.sample.util.Booter;
 import org.wso2.sample.util.FileSearch;
+import org.wso2.sample.util.Writer;
 
 
 /**
@@ -35,20 +41,25 @@ public class DependencyManager {
     private static ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
     private static ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
 
-    public static void main(String [] args) {
+    public static void main(String [] args) throws Exception{
+       processDependencies();
+    }
+
+    public static void processDependencies() throws Exception
+    {
         String rootPath = "/Users/tharik/Desktop/git/rep";
         DependencyManager.loadPOMFiles(rootPath);
         String json;
 
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.cep", "wso2cep", "4.0.0-SNAPSHOT", "product-cep"));
 
-        dependencies = DependencyManager.loadPOM(rootPath);
-
-       /* for (int i = 0; i < pomFiles.size(); i++) {
-            DependencyManager.loadDependencies(pomFiles.get(i), rootPath);
-        }*/
 
         for (int i = 0; i < pomFiles.size(); i++) {
             DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
+        }
+
+        for (int i = 0; i < dependencies.size(); i++){
+            System.out.println(i +" - " +dependencies.get(i).getGroupId() +" - " + dependencies.get(i).getArtifactId() + " - " + dependencies.get(i).getVersion() + " - "  + dependencies.get(i).getRepositorySource());
         }
 
         for (int i = 0; i < dependencies.size(); i++){
@@ -57,7 +68,7 @@ public class DependencyManager {
 
                 if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
                         dependencies.get(i).getRepositorySource() )) {
-                  uniqueDependencies.add(dependencies.get(i));
+                    uniqueDependencies.add(dependencies.get(i));
                 }
             }
         }
@@ -68,9 +79,9 @@ public class DependencyManager {
             json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"'
                     + uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
 
-           // json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->"
-           // + '"' +uniqueDependencies.get(i).getRepositorySource()
-           // + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
+            // json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->"
+            // + '"' +uniqueDependencies.get(i).getRepositorySource()
+            // + "(" +uniqueDependencies.get(i).getArtifactId()  + ")" + '"' + ";";
         }
 
         json += "}";
@@ -99,6 +110,8 @@ public class DependencyManager {
     }
 
     public static ArrayList<Dependency> loadPOM(String rootPath) {
+
+
 
         FileSearch fileSearch = new FileSearch();
         String pathArray[]=fileSearch.getPath(rootPath);
@@ -130,6 +143,8 @@ public class DependencyManager {
                             "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
                     repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
                             "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
+                    repositories.add((new RemoteRepository.Builder("wso2.wso2maven2", "default",
+                            "http://maven.wso2.org/nexus/content/repositories/wso2maven2/")).build());
 
                     DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
 
@@ -145,20 +160,19 @@ public class DependencyManager {
                             NodeList groupIdNodeList = groupIdElmnt.getChildNodes();
                             groupId = ((Node) groupIdNodeList.item(0)).getNodeValue();
 
-                            NodeList artifactIdElmntLst = newElement.getElementsByTagName("artifactId");
-                            Element artfIdElmnt = (Element) artifactIdElmntLst.item(0);
-                            NodeList artifIdNodeList = artfIdElmnt.getChildNodes();
-                            artifactId = ((Node) artifIdNodeList.item(0)).getNodeValue();
-
-                            if(artifactId.contains("parent")){
-                                int index = artifactId.indexOf("parent");
-                                artifactId = artifactId.substring(0,index-1);
-                            }
+                            XPath xPath =  XPathFactory.newInstance().newXPath();
+                            String expression = "/project/artifactId";
+                            artifactId = xPath.compile(expression).evaluate(doc);
 
                             NodeList versionElmntLst = newElement.getElementsByTagName("version");
                             Element versionElmnt = (Element) versionElmntLst.item(0);
                             NodeList versionNodeList = versionElmnt.getChildNodes();
                             version = ((Node) versionNodeList.item(0)).getNodeValue();
+
+                             if(artifactId.contains("parent")){
+                                int index = artifactId.indexOf("parent");
+                                artifactId = artifactId.substring(0,index-1);
+                               }
 
                             snapshots.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version,
                                     system, session, repositories,
@@ -196,9 +210,14 @@ public class DependencyManager {
 
             doc.getDocumentElement().normalize();
 
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String expression = DependencyManager.XPATH_ARTIFACT_SOURCE;
-            NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
+            groupId = getXpathValue(doc, "/project/parent/groupId");
+            version = getXpathValue(doc, "/project/parent/version");
+
+          /*  if(artifactId.contains("parent")){
+                int index = artifactId.indexOf("parent");
+                artifactId = artifactId.substring(0,index-1);
+            }*/
 
             RepositorySystem system = Booter.newRepositorySystem();
             List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
@@ -210,38 +229,6 @@ public class DependencyManager {
 
             DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
 
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-
-                Node nNode = nList.item(temp);
-
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    artifactId = nNode.getTextContent();
-                }
-            }
-
-            xPath =  XPathFactory.newInstance().newXPath();
-            nList = (NodeList) xPath.compile("parent/groupId").evaluate(doc, XPathConstants.NODESET);
-
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-
-                Node nNode = nList.item(temp);
-
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    groupId = nNode.getTextContent();
-                }
-            }
-
-            xPath =  XPathFactory.newInstance().newXPath();
-            nList = (NodeList) xPath.compile("parent/version").evaluate(doc, XPathConstants.NODESET);
-
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-
-                Node nNode = nList.item(temp);
-
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    version = nNode.getTextContent();
-                }
-            }
 
 
             dependencies.addAll(GetDirectDependencies.loadDependencies(groupId, artifactId, version, system, session,
@@ -253,6 +240,26 @@ public class DependencyManager {
         }
     }
 
+    public static String getXpathValue(Document doc, String expression)
+            throws Exception
+    {
+        XPath xPath =  XPathFactory.newInstance().newXPath();
+
+        NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+
+        for (int temp = 0; temp < nList.getLength(); temp++) {
+
+            Node nNode = nList.item(temp);
+
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+
+                return nNode.getTextContent();
+            }
+        }
+
+        return "";
+    }
+
     public static void loadSourceRepositories(File fXmlFile, String rootPath) {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -261,24 +268,19 @@ public class DependencyManager {
 
             doc.getDocumentElement().normalize();
 
-            XPath xPath =  XPathFactory.newInstance().newXPath();
-            String expression = DependencyManager.XPATH_ARTIFACT_SOURCE;
-            NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
 
-            for (int temp = 0; temp < nList.getLength(); temp++) {
 
-                Node nNode = nList.item(temp);
+            String artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
+            String groupId = getXpathValue(doc, "/project/parent/groupId");
 
-                if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                    for (int i = 0; i < dependencies.size(); i++) {
-                        if ( dependencies.get(i).getArtifactId().equals(nNode.getTextContent())) {
-                            dependencies.get(i).setRepositorySource(fXmlFile.getPath().split(File.separator)
-                                                                            [rootPath.split(File.separator).length]);
-                        }
-                    }
+            for (int i = 0; i < dependencies.size(); i++) {
+                if ( dependencies.get(i).getArtifactId().equals(artifactId)
+                        && dependencies.get(i).getGroupId().equals(groupId)) {
+                    dependencies.get(i).setRepositorySource(fXmlFile.getPath().split(File.separator)
+                                                                    [rootPath.split(File.separator).length]);
                 }
             }
+
         } catch (Exception e) {
             System.out.println(e.getMessage() + " " + fXmlFile.getPath());
         }
@@ -298,38 +300,4 @@ public class DependencyManager {
         }
         return  false;
     }
-
-
-    public static void processAether()
-            throws Exception {
-
-        RepositorySystem system = Booter.newRepositorySystem();
-        List<RemoteRepository> repositories = new ArrayList<RemoteRepository>();
-
-        repositories.add((new RemoteRepository.Builder("wso2.snapshots", "default",
-                "http://maven.wso2.org/nexus/content/repositories/snapshots/")).build());
-        repositories.add((new RemoteRepository.Builder("wso2.releases", "default",
-                "http://maven.wso2.org/nexus/content/repositories/releases/")).build());
-
-        DefaultRepositorySystemSession session = Booter.newRepositorySystemSession(system);
-
-
-        //   loadDependencies("org.wso2.esb", "wso2esb", "4.9.0-SNAPSHOT", system, session, repositories, "");
-        List<org.wso2.sample.library.Dependency> dependencies = GetDirectDependencies.loadDependencies("org.wso2.brs",
-                                                    "wso2brs", "2.2.0-SNAPSHOT", system, session, repositories, "");
-        //loadDependencies("org.wso2.balana", "balana", "1.0.0.wso2v8-SNAPSHOT", system, session, repositories);
-        //  loadDependencies("org.wso2.governance", "governance", "5.0.0", system, session, repositories);
-        //loadDependencies("org.wso2.carbon", "carbon-mediation", "4.3.0-SNAPSHOT");
-
-        // loadDependencies("org.wso2.appserver", "wso2as","6.0.0-SNAPSHOT", system, session, repositories);
-        // loadDependencies("org.wso2.bam", "wso2bam","3.0.0-SNAPSHOT", system, session, repositories, "");
-
-
-        System.out.println("----");
-        for (int i = 0; i < dependencies.size(); i++)
-        {
-            System.out.println(dependencies.get(i).getGroupId() + " - " + dependencies.get(i).getArtifactId() + " - "
-                                                        + dependencies.get(i).getVersion());
-        }
-
 }
