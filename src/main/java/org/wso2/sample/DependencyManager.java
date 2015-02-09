@@ -26,8 +26,10 @@ import org.wso2.sample.util.FileSearch;
 public class DependencyManager {
 
     public static final String XPATH_ARTIFACT_SOURCE = "/project/artifactId";
+    public static final String XPATH_GROUP_ID = "/project/parent/groupId";
+
     public static final String POM_FILE_NAME = "pom.xml";
-    private static ArrayList<File> pomFiles = new ArrayList<File>();
+
 
     private static ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
     private static ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
@@ -39,21 +41,33 @@ public class DependencyManager {
     public static void processDependencies() throws Exception
     {
         String rootPath = "/Users/tharik/Desktop/git/rep";
-        DependencyManager.loadPOMFiles(rootPath);
+        String repoPath = "/Users/tharik/.m2/repository/org/wso2";
+
+        ArrayList<File> pomFiles = DependencyManager.loadPOMFiles(rootPath);
         String json;
+
+
+        //File folder = new File(repoPath);
+        //File[] repos = folder.listFiles();
+
 
         dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.cep", "wso2cep", "4.0.0-SNAPSHOT", "product-cep"));
         dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.bam", "wso2bam-parent", "3.0.0-SNAPSHOT", "product-bam"));
         dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.mb", "mb-parent", "3.0.0-SNAPSHOT", "product-mb"));
-
-
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.greg", "governance-parent", "5.0.0-SNAPSHOT", "product-greg"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.esb", "wso2esb", "4.8.1", "product-esb"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.bps", "wso2bps-parent", "3.5.0-SNAPSHOT", "product-bps"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.identity", "identity-server-parent", "5.1.0-SNAPSHOT", "product-is"));
+        dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal("org.wso2.ss", "ss-parent", "1.5.0-SNAPSHOT", "product-ss"));
 
         for (int i = 0; i < pomFiles.size(); i++) {
             DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
         }
 
         for (int i = 0; i < dependencies.size(); i++){
-            System.out.println(i +" - " +dependencies.get(i).getGroupId() +" - " + dependencies.get(i).getArtifactId() + " - " + dependencies.get(i).getVersion() + " - "  + dependencies.get(i).getRepositorySource());
+            System.out.println(i +" - " +dependencies.get(i).getGroupId() +" - "
+                    + dependencies.get(i).getArtifactId() + " - " + dependencies.get(i).getVersion()
+                    + " - "  + dependencies.get(i).getRepositorySource());
         }
 
         for (int i = 0; i < dependencies.size(); i++){
@@ -87,9 +101,10 @@ public class DependencyManager {
         System.out.println("Pom Files :" +  pomFiles.size());
     }
 
-    public static void loadPOMFiles(String rootPath) {
+    public static ArrayList<File> loadPOMFiles(String rootPath) {
         File folder = new File(rootPath);
         File[] listOfFiles = folder.listFiles();
+        ArrayList<File> pomFiles = new ArrayList<File>();
 
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
@@ -97,10 +112,11 @@ public class DependencyManager {
                     pomFiles.add(listOfFiles[i]);
                 }
             } else if (listOfFiles[i].isDirectory()) {
-                DependencyManager.loadPOMFiles(rootPath + File.separator + listOfFiles[i].getName());
+                pomFiles.addAll(DependencyManager.loadPOMFiles(rootPath + File.separator + listOfFiles[i].getName()));
             }
         }
 
+        return  pomFiles;
     }
 
     public static ArrayList<Dependency> loadPOM(String rootPath) {
@@ -152,8 +168,7 @@ public class DependencyManager {
                             groupId = ((Node) groupIdNodeList.item(0)).getNodeValue();
 
                             XPath xPath =  XPathFactory.newInstance().newXPath();
-                            String expression = "/project/artifactId";
-                            artifactId = xPath.compile(expression).evaluate(doc);
+                            artifactId = xPath.compile(DependencyManager.XPATH_ARTIFACT_SOURCE).evaluate(doc);
 
                             NodeList versionElmntLst = newElement.getElementsByTagName("version");
                             Element versionElmnt = (Element) versionElmntLst.item(0);
@@ -217,7 +232,7 @@ public class DependencyManager {
 
 
             String artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
-            String groupId = getXpathValue(doc, "/project/parent/groupId");
+            String groupId = getXpathValue(doc, DependencyManager.XPATH_GROUP_ID);
 
             for (int i = 0; i < dependencies.size(); i++) {
                 if ( dependencies.get(i).getArtifactId().equals(artifactId)
