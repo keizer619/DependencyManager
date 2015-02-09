@@ -28,7 +28,7 @@ public class DependencyManager {
         ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
 
         ArrayList<File> pomFiles = DependencyManager.loadPOMFiles(Constants.ROOT_PATH);
-        String json;
+
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
@@ -80,19 +80,22 @@ public class DependencyManager {
                 }
             }
         }
+        logger.info(DependencyManager.generateJsonGraph(uniqueDependencies));
+        logger.info("Total Dependencies : " + dependencies.size());
+        logger.info("Total unique Dependencies : " + uniqueDependencies.size());
+        logger.info("Pom Files :" +  pomFiles.size());
+    }
 
-        json = "digraph {";
+    public static String generateJsonGraph(ArrayList<Dependency> dependencies)
+    {
+        String json = "digraph {";
 
-        for (int i = 0; i < uniqueDependencies.size(); i++) {
-            json += '"' +uniqueDependencies.get(i).getRepositoryDepends() +'"' + "->" + '"'
-                    + uniqueDependencies.get(i).getRepositorySource() + '"' + ";";
+        for (int i = 0; i < dependencies.size(); i++) {
+            json += '"' +dependencies.get(i).getRepositoryDepends() +'"' + "->" + '"'
+                    + dependencies.get(i).getRepositorySource() + '"' + ";";
         }
-
         json += "}";
-        System.out.println(json);
-        System.out.println("Total Dependencies : " + dependencies.size());
-        System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
-        System.out.println("Pom Files :" +  pomFiles.size());
+        return json;
     }
 
     public static ArrayList<File> loadPOMFiles(String rootPath) {
