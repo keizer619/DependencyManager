@@ -74,13 +74,28 @@ public class DependencyManager {
 
             if (dependencies.get(i).getRepositorySource() != null) {
 
-                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
+                if (!isRepositoryDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
                         dependencies.get(i).getRepositorySource() )) {
                     uniqueDependencies.add(dependencies.get(i));
                 }
             }
         }
+
         logger.info(DependencyManager.generateJsonGraph(uniqueDependencies));
+        logger.info("Total unique Repository Dependencies : " + uniqueDependencies.size());
+        uniqueDependencies.clear();
+
+        for (int i = 0; i < dependencies.size(); i++){
+
+            if (dependencies.get(i).getRepositorySource() != null) {
+
+                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
+                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion() )) {
+                    uniqueDependencies.add(dependencies.get(i));
+                }
+            }
+        }
+
         logger.info("Total Dependencies : " + dependencies.size());
         logger.info("Total unique Dependencies : " + uniqueDependencies.size());
         logger.info("Pom Files :" +  pomFiles.size());
@@ -163,7 +178,7 @@ public class DependencyManager {
         return dependencies;
     }
 
-    public static boolean isDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
+    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
 
         if (repoDepends.trim().equals(repoSource.trim())) {
             return true;
@@ -174,6 +189,18 @@ public class DependencyManager {
                   && unique.get(i).getRepositoryDepends().equals(repoDepends)) {
               return  true;
           }
+        }
+        return  false;
+    }
+
+    public static boolean isDependencyExists(ArrayList<Dependency> unique, String groupId, String artifactId,
+                                             String version) {
+        for (int i = 0; i < unique.size(); i++) {
+            if (unique.get(i).getGroupId().equals(groupId)
+                    && unique.get(i).getArtifactId().equals(artifactId)
+                    && unique.get(i).getVersion().equals(version)) {
+                return  true;
+            }
         }
         return  false;
     }
