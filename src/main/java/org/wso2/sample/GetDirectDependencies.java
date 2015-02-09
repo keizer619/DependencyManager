@@ -1,4 +1,6 @@
 package org.wso2.sample;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -22,50 +24,29 @@ import java.util.List;
  */
 public class GetDirectDependencies
 {
-
     public static ArrayList<org.wso2.sample.library.Dependency> loadDependencies(String groupId, String artifactId, String version, RepositorySystem system,
                                         DefaultRepositorySystemSession session, List<RemoteRepository> repositories, String currentRepository)
             throws Exception {
 
         ArrayList<org.wso2.sample.library.Dependency> dependencies = new ArrayList<org.wso2.sample.library.Dependency>();
 
-        Artifact artifact = new DefaultArtifact(groupId + ":" + artifactId + ":" + version);
+        Artifact artifact = new DefaultArtifact(groupId + Constants.DEPENDENCY_SEPERATOR + artifactId
+                                                + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact(artifact);
         descriptorRequest.setRepositories(system.newResolutionRepositories(session, repositories));
 
         ArtifactDescriptorResult descriptorResult = system.readArtifactDescriptor(session, descriptorRequest);
 
-        for (Dependency dependency : descriptorResult.getDependencies()) {
-                try {
-                        org.wso2.sample.library.Dependency snapshot = new org.wso2.sample.library.Dependency();
-                        snapshot.setArtifactId(dependency.getArtifact().getArtifactId().toString());
-                        snapshot.setGroupId(dependency.getArtifact().getGroupId().toString());
-                        snapshot.setVersion(dependency.getArtifact().getVersion().toString());
-                        snapshot.setRepositoryDepends(currentRepository);
-                        snapshot.setRepositorySource("Other");
-                        dependencies.add(snapshot);
-                } catch (Exception e) {
-                }
+        for (Dependency dependency :  descriptorResult.getDependencies()) {
+            dependencies.add(loadDependency(dependency, currentRepository));
         }
 
-
         for (Dependency dependency : descriptorResult.getManagedDependencies()) {
-            try {
-                    org.wso2.sample.library.Dependency snapshot = new org.wso2.sample.library.Dependency();
-                    snapshot.setArtifactId(dependency.getArtifact().getArtifactId().toString());
-                    snapshot.setGroupId(dependency.getArtifact().getGroupId().toString());
-                    snapshot.setVersion(dependency.getArtifact().getVersion().toString());
-                    snapshot.setRepositoryDepends(currentRepository);
-                    snapshot.setRepositorySource("Other");
-                    dependencies.add(snapshot);
-
-            } catch (Exception e) {
-            }
+            dependencies.add(loadDependency(dependency, currentRepository));
         }
         return  dependencies;
     }
-
 
     public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromLocal(String groupId,
                                      String artifactId, String version , String currentRepository) throws Exception {
@@ -75,44 +56,38 @@ public class GetDirectDependencies
         RepositorySystem system = Booter.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
-        LocalRepository localRepo = new LocalRepository("/Users/tharik/.m2/repository" );
+        LocalRepository localRepo = new LocalRepository(Constants.M2_PATH);
         session.setLocalRepositoryManager( system.newLocalRepositoryManager( session, localRepo ) );
 
-        Artifact artifact = new DefaultArtifact(groupId + ":" + artifactId + ":" + version);
+        Artifact artifact = new DefaultArtifact(groupId + Constants.DEPENDENCY_SEPERATOR  + artifactId
+                                                + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact( artifact );
         descriptorRequest.setRepositories( Booter.newRepositories( system, session ) );
         ArtifactDescriptorResult descriptorResult = system.readArtifactDescriptor( session, descriptorRequest );
 
-
         for (Dependency dependency : descriptorResult.getDependencies()) {
-            try {
-                org.wso2.sample.library.Dependency snapshot = new org.wso2.sample.library.Dependency();
-                snapshot.setArtifactId(dependency.getArtifact().getArtifactId().toString());
-                snapshot.setGroupId(dependency.getArtifact().getGroupId().toString());
-                snapshot.setVersion(dependency.getArtifact().getVersion().toString());
-                snapshot.setRepositoryDepends(currentRepository);
-                snapshot.setRepositorySource("Other");
-                dependencies.add(snapshot);
-            } catch (Exception e) {
-            }
+            dependencies.add(loadDependency(dependency, currentRepository));
         }
 
         for (Dependency dependency : descriptorResult.getManagedDependencies()) {
-            try {
-                org.wso2.sample.library.Dependency snapshot = new org.wso2.sample.library.Dependency();
-                snapshot.setArtifactId(dependency.getArtifact().getArtifactId().toString());
-                snapshot.setGroupId(dependency.getArtifact().getGroupId().toString());
-                snapshot.setVersion(dependency.getArtifact().getVersion().toString());
-                snapshot.setRepositoryDepends(currentRepository);
-                snapshot.setRepositorySource("Other");
-                dependencies.add(snapshot);
-
-            } catch (Exception e) {
-            }
+            dependencies.add(loadDependency(dependency, currentRepository));
         }
 
         return  dependencies;
+    }
+
+    private static org.wso2.sample.library.Dependency loadDependency(Dependency dependency, String currentRepository)
+    {
+        org.wso2.sample.library.Dependency dep = new org.wso2.sample.library.Dependency();
+
+        dep.setArtifactId(dependency.getArtifact().getArtifactId().toString());
+        dep.setGroupId(dependency.getArtifact().getGroupId().toString());
+        dep.setVersion(dependency.getArtifact().getVersion().toString());
+        dep.setRepositoryDepends(currentRepository);
+        dep.setRepositorySource(Constants.DEFAULT_SOURCE_NAME);
+
+        return dep;
     }
 
 }

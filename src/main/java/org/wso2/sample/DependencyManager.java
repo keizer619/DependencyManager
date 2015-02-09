@@ -7,73 +7,67 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.sample.library.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- * Created by tharik on 1/29/15.
- */
 public class DependencyManager {
 
-    public static final String XPATH_ARTIFACT_SOURCE = "/project/artifactId";
-    public static final String XPATH_GROUP_ID = "/project/parent/groupId";
-    public static boolean IS_ALL_POMS = false;
-    public static  String POM_FILE_NAME = "pom.xml";
+    private static final Log logger = LogFactory.getLog(DependencyManager.class);
 
-
-    private static ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
-    private static ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
-
-    public static void main(String [] args) throws Exception{
+    public static void main(String [] args) throws Exception {
        processDependencies();
     }
 
-    public static void processDependencies() throws Exception
-    {
-        String rootPath = "/Users/tharik/Desktop/git/rep";
-        ArrayList<File> pomFiles = DependencyManager.loadPOMFiles(rootPath);
+    public static void processDependencies() throws Exception {
+
+        ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
+        ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
+
+        ArrayList<File> pomFiles = DependencyManager.loadPOMFiles(Constants.ROOT_PATH);
         String json;
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-        for (int i= 0 ; i< pomFiles.size(); i++){
-            if (DependencyManager.IS_ALL_POMS ||
-                pomFiles.get(i).getPath().split(File.separator)[rootPath.split(File.separator).length + 1]
-                .equals("pom.xml")) {
+        for (int i= 0 ; i < pomFiles.size(); i++){
+            if (Constants.IS_ALL_POMS ||
+                pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length + 1]
+                .equals(Constants.POM_FILE_NAME)) {
 
                try {
 
                  Document doc = dBuilder.parse(pomFiles.get(i));
                  doc.getDocumentElement().normalize();
 
-                 String artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
-                 String groupId = getXpathValue(doc, "/project/groupId");
-                 String version = getXpathValue(doc, "/project/version");
+                 String artifactId = getXpathValue(doc, Constants.XPATH_ARTIFACT_SOURCE);
+                 String groupId = getXpathValue(doc, Constants.XPATH_GROUP_ID);
+                 String version = getXpathValue(doc, Constants.XPATH_VERSION);
 
                  if (groupId.equals("")){
-                     groupId = getXpathValue(doc, "/project/parent/groupId");
+                     groupId = getXpathValue(doc, Constants.XPATH_PARENT_GROUP_ID);
                  }
 
                 if (version.equals("")){
-                    version = getXpathValue(doc, "/project/parent/version");
+                    version = getXpathValue(doc, Constants.XPATH_PARENT_VERSION);
                 }
 
                 dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal(groupId, artifactId, version,
-                            pomFiles.get(i).getPath().split(File.separator)[rootPath.split(File.separator).length]));
+                            pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length]));
 
                }
                catch (Exception ex)
                {
-                 System.out.println(ex.getMessage());
+                   logger.error("Exception occurred when loading pom dependency " + ex.getMessage());
                }
 
             }
         }
 
         for (int i = 0; i < pomFiles.size(); i++) {
-            DependencyManager.loadSourceRepositories(pomFiles.get(i), rootPath);
+           dependencies = DependencyManager.loadSourceRepositories(pomFiles.get(i), Constants.ROOT_PATH, dependencies);
         }
 
         for (int i = 0; i < dependencies.size(); i++){
@@ -108,7 +102,7 @@ public class DependencyManager {
 
         for (int i = 0; i < listOfFiles.length; i++) {
             if (listOfFiles[i].isFile()) {
-                if (listOfFiles[i].getName().equals(DependencyManager.POM_FILE_NAME)) {
+                if (listOfFiles[i].getName().equals(Constants.POM_FILE_NAME)) {
                     pomFiles.add(listOfFiles[i]);
                 }
             } else if (listOfFiles[i].isDirectory()) {
@@ -139,7 +133,8 @@ public class DependencyManager {
         return "";
     }
 
-    public static void loadSourceRepositories(File fXmlFile, String rootPath) {
+    public static ArrayList<Dependency>  loadSourceRepositories(File fXmlFile, String rootPath,
+                                                                ArrayList<Dependency> dependencies) {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -149,8 +144,8 @@ public class DependencyManager {
 
 
 
-            String artifactId = getXpathValue(doc, DependencyManager.XPATH_ARTIFACT_SOURCE);
-            String groupId = getXpathValue(doc, DependencyManager.XPATH_GROUP_ID);
+            String artifactId = getXpathValue(doc, Constants.XPATH_ARTIFACT_SOURCE);
+            String groupId = getXpathValue(doc, Constants.XPATH_PARENT_GROUP_ID);
 
             for (int i = 0; i < dependencies.size(); i++) {
                 if ( dependencies.get(i).getArtifactId().equals(artifactId)
@@ -159,10 +154,10 @@ public class DependencyManager {
                                                                     [rootPath.split(File.separator).length]);
                 }
             }
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage() + " " + fXmlFile.getPath());
+        } catch (Exception ex) {
+            logger.error("Exception occurred when loading repository " + ex.getMessage());
         }
+        return dependencies;
     }
 
     public static boolean isDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
