@@ -75,14 +75,14 @@ public class DependencyManager {
             if (dependencies.get(i).getRepositorySource() != null) {
 
                 if (!isRepositoryDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
-                        dependencies.get(i).getRepositorySource() )) {
+                        dependencies.get(i).getRepositorySource())) {
                     uniqueDependencies.add(dependencies.get(i));
                 }
             }
         }
 
-        logger.info(DependencyManager.generateJsonGraph(uniqueDependencies));
-        logger.info("Total unique Repository Dependencies : " + uniqueDependencies.size());
+        System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
+        System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
         uniqueDependencies.clear();
 
         for (int i = 0; i < dependencies.size(); i++){
@@ -90,15 +90,16 @@ public class DependencyManager {
             if (dependencies.get(i).getRepositorySource() != null) {
 
                 if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
-                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion() )) {
+                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),
+                        dependencies.get(i).getRepositoryDepends() )) {
                     uniqueDependencies.add(dependencies.get(i));
                 }
             }
         }
 
-        logger.info("Total Dependencies : " + dependencies.size());
-        logger.info("Total unique Dependencies : " + uniqueDependencies.size());
-        logger.info("Pom Files :" +  pomFiles.size());
+        System.out.println("Total Dependencies : " + dependencies.size());
+        System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
+        System.out.println("Pom Files :" +  pomFiles.size());
     }
 
     public static String generateJsonGraph(ArrayList<Dependency> dependencies)
@@ -194,11 +195,12 @@ public class DependencyManager {
     }
 
     public static boolean isDependencyExists(ArrayList<Dependency> unique, String groupId, String artifactId,
-                                             String version) {
+                                             String version, String productDepends) {
         for (int i = 0; i < unique.size(); i++) {
             if (unique.get(i).getGroupId().equals(groupId)
                     && unique.get(i).getArtifactId().equals(artifactId)
-                    && unique.get(i).getVersion().equals(version)) {
+                    && unique.get(i).getVersion().equals(version)
+                    && unique.get(i).getRepositoryDepends().equals(productDepends)) {
                 return  true;
             }
         }
