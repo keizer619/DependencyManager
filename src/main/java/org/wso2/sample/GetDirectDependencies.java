@@ -1,19 +1,46 @@
+/**
+ * Copyright (c) 2005-2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ **/
+
 package org.wso2.sample;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
-import org.wso2.sample.util.Booter;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
 import org.eclipse.aether.resolution.ArtifactDescriptorResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transport.file.FileTransporterFactory;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.wso2.sample.util.ManualRepositorySystemFactory;
+
 import java.lang.Exception;
 import java.lang.String;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -73,7 +100,7 @@ public class GetDirectDependencies
 
         ArrayList<org.wso2.sample.library.Dependency> dependencies = new ArrayList<org.wso2.sample.library.Dependency>();
 
-        RepositorySystem system = Booter.newRepositorySystem();
+        RepositorySystem system = GetDirectDependencies.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
         LocalRepository localRepo = new LocalRepository(Constants.M2_PATH);
@@ -83,8 +110,10 @@ public class GetDirectDependencies
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact( artifact );
-        descriptorRequest.setRepositories( Booter.newRepositories( system, session ) );
+        descriptorRequest.setRepositories( GetDirectDependencies.newRepositories( system, session ) );
         ArtifactDescriptorResult descriptorResult = system.readArtifactDescriptor( session, descriptorRequest );
+
+
 
         for (Dependency dependency : descriptorResult.getDependencies()) {
             dependencies.add(loadDependency(dependency, currentRepository));
@@ -108,6 +137,35 @@ public class GetDirectDependencies
         dep.setRepositorySource(Constants.DEFAULT_SOURCE_NAME);
 
         return dep;
+    }
+
+    public static RepositorySystem newRepositorySystem()
+    {
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        locator.addService( RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class );
+        locator.addService( TransporterFactory.class, FileTransporterFactory.class );
+        locator.addService( TransporterFactory.class, HttpTransporterFactory.class );
+
+        locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler()
+        {
+            @Override
+            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception )
+            {
+                exception.printStackTrace();
+            }
+        } );
+
+        return locator.getService(RepositorySystem.class);
+    }
+
+    public static List<RemoteRepository> newRepositories( RepositorySystem system, RepositorySystemSession session )
+    {
+        return new ArrayList<RemoteRepository>( Arrays.asList(newCentralRepository()) );
+    }
+
+    private static RemoteRepository newCentralRepository()
+    {
+        return new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build();
     }
 
 }
