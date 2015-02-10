@@ -16,7 +16,7 @@
  * under the License.
  **/
 
-package org.wso2.sample.library;
+package org.wso2.cabon.build.tools.dto;
 
 public class Dependency {
 

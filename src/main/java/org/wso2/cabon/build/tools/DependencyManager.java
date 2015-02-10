@@ -16,7 +16,7 @@
  * under the License.
  **/
 
-package org.wso2.sample;
+package org.wso2.cabon.build.tools;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.sample.library.Dependency;
+import org.wso2.cabon.build.tools.dto.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -72,9 +72,9 @@ public class DependencyManager {
                     version = getXpathValue(doc, Constants.XPATH_PARENT_VERSION);
                 }
 
-                dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal(groupId, artifactId, version,
-                            pomFiles.get(i).getPath().split(File.separator)
-                                                            [Constants.ROOT_PATH.split(File.separator).length]));
+                dependencies.addAll(AetherManager.loadDependenciesFromLocal(groupId, artifactId, version,
+                        pomFiles.get(i).getPath().split(File.separator)
+                                [Constants.ROOT_PATH.split(File.separator).length]));
 
                }
                catch (Exception ex)

@@ -16,12 +16,11 @@
  * under the License.
  **/
 
-package org.wso2.sample;
+package org.wso2.cabon.build.tools;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
@@ -41,10 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Determines the direct dependencies of an artifact as declared in its artifact descriptor (POM).
- */
-public class GetDirectDependencies
+public class AetherManager
 {
     /**
      * Provide dependencies on given artifact by checking against given remote repositories
@@ -58,13 +54,13 @@ public class GetDirectDependencies
      * @return
      * @throws Exception
      */
-    public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromRemote(String groupId,
+    public static ArrayList<org.wso2.cabon.build.tools.dto.Dependency> loadDependenciesFromRemote(String groupId,
                                         String artifactId, String version, RepositorySystem system,
                                         DefaultRepositorySystemSession session,
                                         List<RemoteRepository> repositories, String currentRepository)
             throws Exception {
 
-        ArrayList<org.wso2.sample.library.Dependency> dependencies = new ArrayList<org.wso2.sample.library.Dependency>();
+        ArrayList<org.wso2.cabon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.cabon.build.tools.dto.Dependency>();
 
         Artifact artifact = new DefaultArtifact(groupId + Constants.DEPENDENCY_SEPERATOR + artifactId
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
@@ -93,12 +89,12 @@ public class GetDirectDependencies
      * @return
      * @throws Exception
      */
-    public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromLocal(String groupId,
+    public static ArrayList<org.wso2.cabon.build.tools.dto.Dependency> loadDependenciesFromLocal(String groupId,
                                      String artifactId, String version , String currentRepository) throws Exception {
 
-        ArrayList<org.wso2.sample.library.Dependency> dependencies = new ArrayList<org.wso2.sample.library.Dependency>();
+        ArrayList<org.wso2.cabon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.cabon.build.tools.dto.Dependency>();
 
-        RepositorySystem system = GetDirectDependencies.newRepositorySystem();
+        RepositorySystem system = AetherManager.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
         LocalRepository localRepo = new LocalRepository(Constants.M2_PATH);
@@ -108,7 +104,7 @@ public class GetDirectDependencies
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact( artifact );
-        descriptorRequest.setRepositories( GetDirectDependencies.newRepositories( system, session ) );
+        descriptorRequest.setRepositories( AetherManager.newCentralRepository() );
         ArtifactDescriptorResult descriptorResult = system.readArtifactDescriptor( session, descriptorRequest );
 
 
@@ -124,9 +120,9 @@ public class GetDirectDependencies
         return  dependencies;
     }
 
-    private static org.wso2.sample.library.Dependency loadDependency(Dependency dependency, String currentRepository)
-    {
-        org.wso2.sample.library.Dependency dep = new org.wso2.sample.library.Dependency();
+    private static org.wso2.cabon.build.tools.dto.Dependency loadDependency(Dependency dependency,
+                                                                            String currentRepository) {
+        org.wso2.cabon.build.tools.dto.Dependency dep = new org.wso2.cabon.build.tools.dto.Dependency();
 
         dep.setArtifactId(dependency.getArtifact().getArtifactId().toString());
         dep.setGroupId(dependency.getArtifact().getGroupId().toString());
@@ -137,18 +133,15 @@ public class GetDirectDependencies
         return dep;
     }
 
-    public static RepositorySystem newRepositorySystem()
-    {
+    public static RepositorySystem newRepositorySystem() {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService( RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class );
         locator.addService( TransporterFactory.class, FileTransporterFactory.class );
         locator.addService( TransporterFactory.class, HttpTransporterFactory.class );
 
-        locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler()
-        {
+        locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler() {
             @Override
-            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception )
-            {
+            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception ) {
                 exception.printStackTrace();
             }
         } );
@@ -156,14 +149,11 @@ public class GetDirectDependencies
         return locator.getService(RepositorySystem.class);
     }
 
-    public static List<RemoteRepository> newRepositories( RepositorySystem system, RepositorySystemSession session )
-    {
-        return new ArrayList<RemoteRepository>( Arrays.asList(newCentralRepository()) );
-    }
 
-    private static RemoteRepository newCentralRepository()
-    {
-        return new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build();
+    private static List<RemoteRepository> newCentralRepository() {
+        return new ArrayList<RemoteRepository>( Arrays.asList(
+                new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build()));
+
     }
 
 }
