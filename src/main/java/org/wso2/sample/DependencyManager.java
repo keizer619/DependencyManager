@@ -66,10 +66,12 @@ public class DependencyManager {
             }
         }
 
+        //Load sources by checking all loaded pom.xml files
         for (int i = 0; i < pomFiles.size(); i++) {
            dependencies = DependencyManager.loadSourceRepositories(pomFiles.get(i), Constants.ROOT_PATH, dependencies);
         }
 
+        //Eliminates duplicated repository relationships
         for (int i = 0; i < dependencies.size(); i++){
 
             if (dependencies.get(i).getRepositorySource() != null) {
@@ -83,8 +85,9 @@ public class DependencyManager {
 
         System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
         System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
-        uniqueDependencies.clear();
 
+        //Eliminates duplicated artifact repositories
+        uniqueDependencies.clear();
         for (int i = 0; i < dependencies.size(); i++){
 
             if (dependencies.get(i).getRepositorySource() != null) {
@@ -102,6 +105,11 @@ public class DependencyManager {
         System.out.println("Pom Files :" +  pomFiles.size());
     }
 
+    /**
+     * Generate Json string for dependency graph
+     * @param dependencies
+     * @return
+     */
     public static String generateJsonGraph(ArrayList<Dependency> dependencies)
     {
         String json = "digraph {";
@@ -114,6 +122,11 @@ public class DependencyManager {
         return json;
     }
 
+    /**
+     * Load all pom.xml files recursively in given path
+     * @param rootPath
+     * @return
+     */
     public static ArrayList<File> loadPOMFiles(String rootPath) {
         File folder = new File(rootPath);
         File[] listOfFiles = folder.listFiles();
@@ -132,6 +145,13 @@ public class DependencyManager {
         return  pomFiles;
     }
 
+    /**
+     * Provide value of given xpath expression and xml document
+     * @param doc
+     * @param expression
+     * @return
+     * @throws Exception
+     */
     public static String getXpathValue(Document doc, String expression)
             throws Exception
     {
@@ -152,6 +172,13 @@ public class DependencyManager {
         return "";
     }
 
+    /**
+     * Search and load source repository of given dependencies
+     * @param fXmlFile
+     * @param rootPath
+     * @param dependencies
+     * @return
+     */
     public static ArrayList<Dependency>  loadSourceRepositories(File fXmlFile, String rootPath,
                                                                 ArrayList<Dependency> dependencies) {
         try {
@@ -179,8 +206,16 @@ public class DependencyManager {
         return dependencies;
     }
 
+    /**
+     * Check weather dependency relationship between repositories exists
+     * @param unique
+     * @param repoDepends
+     * @param repoSource
+     * @return
+     */
     public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
 
+        //Eliminates recursive repository dependencies
         if (repoDepends.trim().equals(repoSource.trim())) {
             return true;
         }
@@ -194,6 +229,15 @@ public class DependencyManager {
         return  false;
     }
 
+    /**
+     * Check weather dependency artifact exists
+     * @param unique
+     * @param groupId
+     * @param artifactId
+     * @param version
+     * @param productDepends
+     * @return
+     */
     public static boolean isDependencyExists(ArrayList<Dependency> unique, String groupId, String artifactId,
                                              String version, String productDepends) {
         for (int i = 0; i < unique.size(); i++) {

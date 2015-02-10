@@ -24,7 +24,19 @@ import java.util.List;
  */
 public class GetDirectDependencies
 {
-    public static ArrayList<org.wso2.sample.library.Dependency> loadDependencies(String groupId, String artifactId, String version, RepositorySystem system,
+    /**
+     * Provide dependencies on given artifact by checking against given remote repositories
+     * @param groupId
+     * @param artifactId
+     * @param version
+     * @param system
+     * @param session
+     * @param repositories
+     * @param currentRepository
+     * @return
+     * @throws Exception
+     */
+    public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromRemote(String groupId, String artifactId, String version, RepositorySystem system,
                                         DefaultRepositorySystemSession session, List<RemoteRepository> repositories, String currentRepository)
             throws Exception {
 
@@ -48,6 +60,15 @@ public class GetDirectDependencies
         return  dependencies;
     }
 
+    /**
+     * Provide dependencies on given artifact by checking against local repository
+     * @param groupId
+     * @param artifactId
+     * @param version
+     * @param currentRepository
+     * @return
+     * @throws Exception
+     */
     public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromLocal(String groupId,
                                      String artifactId, String version , String currentRepository) throws Exception {
 
