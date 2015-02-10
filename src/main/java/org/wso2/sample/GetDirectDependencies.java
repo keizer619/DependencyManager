@@ -35,8 +35,6 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
-import org.wso2.sample.util.ManualRepositorySystemFactory;
-
 import java.lang.Exception;
 import java.lang.String;
 import java.util.ArrayList;
