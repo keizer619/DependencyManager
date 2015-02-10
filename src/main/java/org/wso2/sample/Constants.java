@@ -1,8 +1,5 @@
 package org.wso2.sample;
 
-/**
- * Created by tharik on 2/9/15.
- */
 public class Constants {
 
     public static final String XPATH_ARTIFACT_SOURCE = "/project/artifactId";

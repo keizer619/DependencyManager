@@ -1,10 +1,8 @@
 package org.wso2.sample;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.LocalRepository;
@@ -13,10 +11,9 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactDescriptorRequest;
 import org.eclipse.aether.resolution.ArtifactDescriptorResult;
-
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.lang.Exception;import java.lang.String;import java.lang.System;import java.util.ArrayList;
+import java.lang.Exception;
+import java.lang.String;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,8 +33,10 @@ public class GetDirectDependencies
      * @return
      * @throws Exception
      */
-    public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromRemote(String groupId, String artifactId, String version, RepositorySystem system,
-                                        DefaultRepositorySystemSession session, List<RemoteRepository> repositories, String currentRepository)
+    public static ArrayList<org.wso2.sample.library.Dependency> loadDependenciesFromRemote(String groupId,
+                                        String artifactId, String version, RepositorySystem system,
+                                        DefaultRepositorySystemSession session,
+                                        List<RemoteRepository> repositories, String currentRepository)
             throws Exception {
 
         ArrayList<org.wso2.sample.library.Dependency> dependencies = new ArrayList<org.wso2.sample.library.Dependency>();

@@ -32,7 +32,7 @@ public class DependencyManager {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-        for (int i= 0 ; i < pomFiles.size(); i++){
+        for (int i= 0 ; i < pomFiles.size(); i++) {
             if (Constants.IS_ALL_POMS ||
                 pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length + 1]
                 .equals(Constants.POM_FILE_NAME)) {
@@ -55,7 +55,8 @@ public class DependencyManager {
                 }
 
                 dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal(groupId, artifactId, version,
-                            pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length]));
+                            pomFiles.get(i).getPath().split(File.separator)
+                                                            [Constants.ROOT_PATH.split(File.separator).length]));
 
                }
                catch (Exception ex)
@@ -65,12 +66,10 @@ public class DependencyManager {
 
             }
         }
-
         //Load sources by checking all loaded pom.xml files
         for (int i = 0; i < pomFiles.size(); i++) {
            dependencies = DependencyManager.loadSourceRepositories(pomFiles.get(i), Constants.ROOT_PATH, dependencies);
         }
-
         //Eliminates duplicated repository relationships
         for (int i = 0; i < dependencies.size(); i++){
 
@@ -110,8 +109,7 @@ public class DependencyManager {
      * @param dependencies
      * @return
      */
-    public static String generateJsonGraph(ArrayList<Dependency> dependencies)
-    {
+    public static String generateJsonGraph(ArrayList<Dependency> dependencies) {
         String json = "digraph {";
 
         for (int i = 0; i < dependencies.size(); i++) {
@@ -153,8 +151,7 @@ public class DependencyManager {
      * @throws Exception
      */
     public static String getXpathValue(Document doc, String expression)
-            throws Exception
-    {
+            throws Exception {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
         NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
@@ -213,8 +210,8 @@ public class DependencyManager {
      * @param repoSource
      * @return
      */
-    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
-
+    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends,
+                                                       String repoSource) {
         //Eliminates recursive repository dependencies
         if (repoDepends.trim().equals(repoSource.trim())) {
             return true;

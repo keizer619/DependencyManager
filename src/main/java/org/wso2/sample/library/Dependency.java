@@ -1,8 +1,5 @@
 package org.wso2.sample.library;
 
-/**
- * Created by tharik on 1/29/15.
- */
 public class Dependency {
 
     private String groupId;
