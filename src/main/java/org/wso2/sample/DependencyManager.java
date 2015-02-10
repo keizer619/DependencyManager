@@ -14,6 +14,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.wso2.dependency.VersionManager;
+
 public class DependencyManager {
 
     private static final Log logger = LogFactory.getLog(DependencyManager.class);
@@ -23,6 +25,8 @@ public class DependencyManager {
     }
 
     public static void processDependencies() throws Exception {
+    	
+    	VersionManager versionManager = new VersionManager();
 
         ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
         ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
@@ -32,7 +36,7 @@ public class DependencyManager {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-        for (int i= 0 ; i < pomFiles.size(); i++) {
+        for (int i= 0 ; i < pomFiles.size(); i++){
             if (Constants.IS_ALL_POMS ||
                 pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length + 1]
                 .equals(Constants.POM_FILE_NAME)) {
@@ -55,8 +59,7 @@ public class DependencyManager {
                 }
 
                 dependencies.addAll(GetDirectDependencies.loadDependenciesFromLocal(groupId, artifactId, version,
-                            pomFiles.get(i).getPath().split(File.separator)
-                                                            [Constants.ROOT_PATH.split(File.separator).length]));
+                            pomFiles.get(i).getPath().split(File.separator)[Constants.ROOT_PATH.split(File.separator).length]));
 
                }
                catch (Exception ex)
@@ -66,34 +69,32 @@ public class DependencyManager {
 
             }
         }
-        //Load sources by checking all loaded pom.xml files
+
         for (int i = 0; i < pomFiles.size(); i++) {
            dependencies = DependencyManager.loadSourceRepositories(pomFiles.get(i), Constants.ROOT_PATH, dependencies);
         }
-        //Eliminates duplicated repository relationships
+
         for (int i = 0; i < dependencies.size(); i++){
 
             if (dependencies.get(i).getRepositorySource() != null) {
 
                 if (!isRepositoryDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
-                        dependencies.get(i).getRepositorySource())) {
+                        dependencies.get(i).getRepositorySource() )) {
                     uniqueDependencies.add(dependencies.get(i));
                 }
             }
         }
-
+        
         System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
         System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
-
-        //Eliminates duplicated artifact repositories
         uniqueDependencies.clear();
+
         for (int i = 0; i < dependencies.size(); i++){
 
             if (dependencies.get(i).getRepositorySource() != null) {
 
                 if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
-                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),
-                        dependencies.get(i).getRepositoryDepends() )) {
+                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),dependencies.get(i).getRepositoryDepends())) {
                     uniqueDependencies.add(dependencies.get(i));
                 }
             }
@@ -102,14 +103,12 @@ public class DependencyManager {
         System.out.println("Total Dependencies : " + dependencies.size());
         System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
         System.out.println("Pom Files :" +  pomFiles.size());
+        
+        versionManager.VersionManage(uniqueDependencies);
     }
 
-    /**
-     * Generate Json string for dependency graph
-     * @param dependencies
-     * @return
-     */
-    public static String generateJsonGraph(ArrayList<Dependency> dependencies) {
+    public static String generateJsonGraph(ArrayList<Dependency> dependencies)
+    {
         String json = "digraph {";
 
         for (int i = 0; i < dependencies.size(); i++) {
@@ -120,11 +119,6 @@ public class DependencyManager {
         return json;
     }
 
-    /**
-     * Load all pom.xml files recursively in given path
-     * @param rootPath
-     * @return
-     */
     public static ArrayList<File> loadPOMFiles(String rootPath) {
         File folder = new File(rootPath);
         File[] listOfFiles = folder.listFiles();
@@ -143,15 +137,9 @@ public class DependencyManager {
         return  pomFiles;
     }
 
-    /**
-     * Provide value of given xpath expression and xml document
-     * @param doc
-     * @param expression
-     * @return
-     * @throws Exception
-     */
     public static String getXpathValue(Document doc, String expression)
-            throws Exception {
+            throws Exception
+    {
         XPath xPath =  XPathFactory.newInstance().newXPath();
 
         NodeList nList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
@@ -169,13 +157,6 @@ public class DependencyManager {
         return "";
     }
 
-    /**
-     * Search and load source repository of given dependencies
-     * @param fXmlFile
-     * @param rootPath
-     * @param dependencies
-     * @return
-     */
     public static ArrayList<Dependency>  loadSourceRepositories(File fXmlFile, String rootPath,
                                                                 ArrayList<Dependency> dependencies) {
         try {
@@ -203,16 +184,8 @@ public class DependencyManager {
         return dependencies;
     }
 
-    /**
-     * Check weather dependency relationship between repositories exists
-     * @param unique
-     * @param repoDepends
-     * @param repoSource
-     * @return
-     */
-    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends,
-                                                       String repoSource) {
-        //Eliminates recursive repository dependencies
+    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends, String repoSource) {
+
         if (repoDepends.trim().equals(repoSource.trim())) {
             return true;
         }
@@ -226,17 +199,8 @@ public class DependencyManager {
         return  false;
     }
 
-    /**
-     * Check weather dependency artifact exists
-     * @param unique
-     * @param groupId
-     * @param artifactId
-     * @param version
-     * @param productDepends
-     * @return
-     */
     public static boolean isDependencyExists(ArrayList<Dependency> unique, String groupId, String artifactId,
-                                             String version, String productDepends) {
+                                             String version,String productDepends) {
         for (int i = 0; i < unique.size(); i++) {
             if (unique.get(i).getGroupId().equals(groupId)
                     && unique.get(i).getArtifactId().equals(artifactId)
