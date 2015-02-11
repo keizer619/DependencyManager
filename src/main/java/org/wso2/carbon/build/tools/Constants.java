@@ -28,9 +28,11 @@ public class Constants {
 
     public static final String ROOT_PATH = "/Users/tharik/Desktop/git/rep";
     public static boolean IS_ALL_POMS = false;
-    public static  String POM_FILE_NAME = "pom.xml";
-
+    public static String POM_FILE_NAME = "pom.xml";
+    
     public static final String M2_PATH = "/Users/tharik/.m2/repository";
     public static final String DEFAULT_SOURCE_NAME = "Other";
     public static final String DEPENDENCY_SEPERATOR = ":";
+    
+    public static final String READ_FILE_PATH="/home/nishali/Documents/Git/DependencyManager/out.txt";
 }
