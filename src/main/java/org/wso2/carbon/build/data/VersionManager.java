@@ -58,7 +58,7 @@ public class VersionManager {
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, Constants.MYSQL_USERNAME, Constants.MYSQL_PASSWORD);
+			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, "nishali", "thilanka");
 			Statement stmt = connect.createStatement();
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){

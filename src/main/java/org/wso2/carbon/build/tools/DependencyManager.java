@@ -32,6 +32,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.wso2.carbon.build.data.VersionManager;
+
 public class DependencyManager {
 
     private static final Log logger = LogFactory.getLog(DependencyManager.class);
@@ -39,6 +41,7 @@ public class DependencyManager {
     public static void main(String [] args) throws Exception {
         ArrayList<Dependency> dependencies =  getAllDependencies();
         ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
+        VersionManager versionManager = new VersionManager();
 
         //Eliminates duplicated repository relationships
         for (int i = 0; i < dependencies.size(); i++){
@@ -71,6 +74,8 @@ public class DependencyManager {
 
         System.out.println("Total Dependencies : " + dependencies.size());
         System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
+        
+        versionManager.VersionManage(uniqueDependencies);
     }
 
     public static ArrayList<Dependency> getDependencies(String groupId, String artifactId, String version
