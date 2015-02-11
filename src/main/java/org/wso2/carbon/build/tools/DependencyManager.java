@@ -16,7 +16,7 @@
  * under the License.
  **/
 
-package org.wso2.cabon.build.tools;
+package org.wso2.carbon.build.tools;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.cabon.build.tools.dto.Dependency;
+import org.wso2.carbon.build.tools.dto.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -223,21 +223,21 @@ public class DependencyManager {
 
     /**
      * Check weather dependency relationship between repositories exists
-     * @param unique
+     * @param dependencies
      * @param repoDepends
      * @param repoSource
      * @return
      */
-    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> unique, String repoDepends,
+    public static boolean isRepositoryDependencyExists(ArrayList<Dependency> dependencies, String repoDepends,
                                                        String repoSource) {
         //Eliminates recursive repository dependencies
         if (repoDepends.trim().equals(repoSource.trim())) {
             return true;
         }
 
-        for (int i = 0; i < unique.size(); i++) {
-          if (unique.get(i).getRepositorySource().equals(repoSource)
-                  && unique.get(i).getRepositoryDepends().equals(repoDepends)) {
+        for (int i = 0; i < dependencies.size(); i++) {
+          if (dependencies.get(i).getRepositorySource().equals(repoSource)
+                  && dependencies.get(i).getRepositoryDepends().equals(repoDepends)) {
               return  true;
           }
         }
@@ -246,20 +246,20 @@ public class DependencyManager {
 
     /**
      * Check weather dependency artifact exists
-     * @param unique
+     * @param dependencies
      * @param groupId
      * @param artifactId
      * @param version
      * @param productDepends
      * @return
      */
-    public static boolean isDependencyExists(ArrayList<Dependency> unique, String groupId, String artifactId,
+    public static boolean isDependencyExists(ArrayList<Dependency> dependencies, String groupId, String artifactId,
                                              String version, String productDepends) {
-        for (int i = 0; i < unique.size(); i++) {
-            if (unique.get(i).getGroupId().equals(groupId)
-                    && unique.get(i).getArtifactId().equals(artifactId)
-                    && unique.get(i).getVersion().equals(version)
-                    && unique.get(i).getRepositoryDepends().equals(productDepends)) {
+        for (int i = 0; i < dependencies.size(); i++) {
+            if (dependencies.get(i).getGroupId().equals(groupId)
+                    && dependencies.get(i).getArtifactId().equals(artifactId)
+                    && dependencies.get(i).getVersion().equals(version)
+                    && dependencies.get(i).getRepositoryDepends().equals(productDepends)) {
                 return  true;
             }
         }

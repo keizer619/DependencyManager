@@ -16,7 +16,7 @@
  * under the License.
  **/
 
-package org.wso2.cabon.build.tools;
+package org.wso2.carbon.build.tools;
 
 public class Constants {
 

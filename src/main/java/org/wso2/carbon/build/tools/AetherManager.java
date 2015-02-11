@@ -16,7 +16,7 @@
  * under the License.
  **/
 
-package org.wso2.cabon.build.tools;
+package org.wso2.carbon.build.tools;
 
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -54,14 +54,12 @@ public class AetherManager
      * @return
      * @throws Exception
      */
-    public static ArrayList<org.wso2.cabon.build.tools.dto.Dependency> loadDependenciesFromRemote(String groupId,
+    public static ArrayList<org.wso2.carbon.build.tools.dto.Dependency> loadDependenciesFromRemote(String groupId,
                                         String artifactId, String version, RepositorySystem system,
-                                        DefaultRepositorySystemSession session,
-                                        List<RemoteRepository> repositories, String currentRepository)
-            throws Exception {
+                                        DefaultRepositorySystemSession session, List<RemoteRepository> repositories,
+                                        String currentRepository) throws Exception {
 
-        ArrayList<org.wso2.cabon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.cabon.build.tools.dto.Dependency>();
-
+        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
         Artifact artifact = new DefaultArtifact(groupId + Constants.DEPENDENCY_SEPERATOR + artifactId
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
@@ -89,10 +87,10 @@ public class AetherManager
      * @return
      * @throws Exception
      */
-    public static ArrayList<org.wso2.cabon.build.tools.dto.Dependency> loadDependenciesFromLocal(String groupId,
+    public static ArrayList<org.wso2.carbon.build.tools.dto.Dependency> loadDependenciesFromLocal(String groupId,
                                      String artifactId, String version , String currentRepository) throws Exception {
 
-        ArrayList<org.wso2.cabon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.cabon.build.tools.dto.Dependency>();
+        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
 
         RepositorySystem system = AetherManager.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
@@ -104,10 +102,9 @@ public class AetherManager
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact( artifact );
-        descriptorRequest.setRepositories( AetherManager.newCentralRepository() );
+        descriptorRequest.setRepositories(new ArrayList<RemoteRepository>( Arrays.asList(
+                new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build())));
         ArtifactDescriptorResult descriptorResult = system.readArtifactDescriptor( session, descriptorRequest );
-
-
 
         for (Dependency dependency : descriptorResult.getDependencies()) {
             dependencies.add(loadDependency(dependency, currentRepository));
@@ -120,9 +117,9 @@ public class AetherManager
         return  dependencies;
     }
 
-    private static org.wso2.cabon.build.tools.dto.Dependency loadDependency(Dependency dependency,
+    private static org.wso2.carbon.build.tools.dto.Dependency loadDependency(Dependency dependency,
                                                                             String currentRepository) {
-        org.wso2.cabon.build.tools.dto.Dependency dep = new org.wso2.cabon.build.tools.dto.Dependency();
+        org.wso2.carbon.build.tools.dto.Dependency dep = new org.wso2.carbon.build.tools.dto.Dependency();
 
         dep.setArtifactId(dependency.getArtifact().getArtifactId().toString());
         dep.setGroupId(dependency.getArtifact().getGroupId().toString());
@@ -148,12 +145,4 @@ public class AetherManager
 
         return locator.getService(RepositorySystem.class);
     }
-
-
-    private static List<RemoteRepository> newCentralRepository() {
-        return new ArrayList<RemoteRepository>( Arrays.asList(
-                new RemoteRepository.Builder( "central", "default", "http://central.maven.org/maven2/" ).build()));
-
-    }
-
 }
