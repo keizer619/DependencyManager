@@ -37,12 +37,12 @@ import java.util.ArrayList;
 
 import org.wso2.carbon.build.tools.dto.Dependency;
 import org.wso2.carbon.build.data.UrlValidate;
+import org.wso2.carbon.build.tools.Constants;
+
 
 public class VersionManager {
 
 	private static Connection connect = null;
-	private static String username="nishali";
-	private static String password="thilanka";
 
 	static URL newUrl=null;
 	static InputStream inStream = null;
@@ -58,12 +58,10 @@ public class VersionManager {
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connect = DriverManager.getConnection("jdbc:mysql://localhost/DependencyManager", username, password);
+			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, Constants.MYSQL_USERNAME, Constants.MYSQL_PASSWORD);
 			Statement stmt = connect.createStatement();
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){
-
-				if(!uniqueDependencies.get(i).getGroupId().contains("wso2") && !uniqueDependencies.get(i).getArtifactId().contains("wso2")){
 					
 					//insert data into RepositoryTable
 					ResultSet compareRepository = stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"+uniqueDependencies.get(i).getRepositoryDepends()+"'");												
@@ -97,8 +95,13 @@ public class VersionManager {
 					
 
 					String url = urlValidate.checkUrl(uniqueDependencies.get(i).getArtifactId(), uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion());
-
+					String repository=null;
 					if(url!=null){
+						if(url.contains("wso2")){
+							repository="wso2";
+						}else{
+							repository="maven";
+						}
 						newUrl = new URL(url);
 						try{
 							inStream = newUrl.openStream();
@@ -116,7 +119,7 @@ public class VersionManager {
 
 						//Read out.txt file
 						PatternMatch patternMatch = new PatternMatch();
-						String latestVersion=patternMatch.getMAtchDetails(uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion(), url);
+						String latestVersion=patternMatch.getMAtchDetails(uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion(), url,repository);
 					
 						//Update the latestVersion in DependencyTable
 						String insertVersionQuery = "update DependencyTable set latestVersion = ? where GroupId='"+uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()+"' AND Version='"+uniqueDependencies.get(i).getVersion()+"'";
@@ -143,12 +146,11 @@ public class VersionManager {
 						
 						
 					}
-				}
+				
 			}
 			stmt.close();
 			connect.close();
 		}catch (SQLException e) {
-			System.out.println("Error-Insert pom file details");
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 		} catch (MalformedURLException e) {

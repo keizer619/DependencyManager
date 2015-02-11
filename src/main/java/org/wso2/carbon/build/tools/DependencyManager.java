@@ -32,21 +32,56 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.wso2.carbon.build.data.VersionManager;
-
 public class DependencyManager {
 
     private static final Log logger = LogFactory.getLog(DependencyManager.class);
-    static VersionManager versionManager = new VersionManager();
 
     public static void main(String [] args) throws Exception {
-       processDependencies();
+        ArrayList<Dependency> dependencies =  getAllDependencies();
+        ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
+
+        //Eliminates duplicated repository relationships
+        for (int i = 0; i < dependencies.size(); i++){
+
+            if (dependencies.get(i).getRepositorySource() != null) {
+
+                if (!isRepositoryDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
+                        dependencies.get(i).getRepositorySource())) {
+                    uniqueDependencies.add(dependencies.get(i));
+                }
+            }
+        }
+
+        System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
+        System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
+
+        //Eliminates duplicated artifact repositories
+        uniqueDependencies.clear();
+        for (int i = 0; i < dependencies.size(); i++){
+
+            if (dependencies.get(i).getRepositorySource() != null) {
+
+                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
+                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),
+                        dependencies.get(i).getRepositoryDepends() )) {
+                    uniqueDependencies.add(dependencies.get(i));
+                }
+            }
+        }
+
+        System.out.println("Total Dependencies : " + dependencies.size());
+        System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
     }
 
-    public static void processDependencies() throws Exception {
+    public static ArrayList<Dependency> getDependencies(String groupId, String artifactId, String version
+                                                         , String currentRepository) throws  Exception{
+        return AetherManager.loadDependenciesFromLocal(groupId, artifactId, version, currentRepository);
+    }
+
+    public static ArrayList<Dependency> getAllDependencies() throws Exception {
 
         ArrayList<Dependency> dependencies = new ArrayList<Dependency>();
-        ArrayList<Dependency> uniqueDependencies = new ArrayList<Dependency>();
+
 
         ArrayList<File> pomFiles = DependencyManager.loadPOMFiles(Constants.ROOT_PATH);
 
@@ -91,40 +126,9 @@ public class DependencyManager {
         for (int i = 0; i < pomFiles.size(); i++) {
            dependencies = DependencyManager.loadSourceRepositories(pomFiles.get(i), Constants.ROOT_PATH, dependencies);
         }
-        //Eliminates duplicated repository relationships
-        for (int i = 0; i < dependencies.size(); i++){
 
-            if (dependencies.get(i).getRepositorySource() != null) {
 
-                if (!isRepositoryDependencyExists(uniqueDependencies, dependencies.get(i).getRepositoryDepends(),
-                        dependencies.get(i).getRepositorySource())) {
-                    uniqueDependencies.add(dependencies.get(i));
-                }
-            }
-        }
-
-        System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
-        System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
-
-        //Eliminates duplicated artifact repositories
-        uniqueDependencies.clear();
-        for (int i = 0; i < dependencies.size(); i++){
-
-            if (dependencies.get(i).getRepositorySource() != null) {
-
-                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
-                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),
-                        dependencies.get(i).getRepositoryDepends() )) {
-                    uniqueDependencies.add(dependencies.get(i));
-                }
-            }
-        }
-
-        System.out.println("Total Dependencies : " + dependencies.size());
-        System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
-        System.out.println("Pom Files :" +  pomFiles.size());
-        
-        versionManager.VersionManage(uniqueDependencies);
+        return dependencies;
     }
 
     /**

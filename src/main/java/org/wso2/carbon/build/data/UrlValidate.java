@@ -34,7 +34,39 @@ public class UrlValidate {
 	boolean status=false;
 
 	public String checkUrl(String sArtifactId,String sGroupId,String sVersion){
+		if(sVersion.contains("SNAPSHOT")){
+			staticUrl="http://maven.wso2.org/nexus/content/repositories/snapshots/";
+			sGroupId=sGroupId.replace('.', '/');
+			groupIdUrl=staticUrl.concat(sGroupId);
+			groupIdPlusUrl=groupIdUrl.concat("/");
+			completeUrl=groupIdPlusUrl.concat(sArtifactId);
+			if(checkUrlStatus(completeUrl)==true){
+				status=false;
+				return completeUrl;
+			}else{
+				staticUrl="http://maven.wso2.org/nexus/content/repositories/wso2.maven2.snapshot/";
+				sGroupId=sGroupId.replace('.', '/');
+				groupIdUrl=staticUrl.concat(sGroupId);
+				groupIdPlusUrl=groupIdUrl.concat("/");
+				completeUrl=groupIdPlusUrl.concat(sArtifactId);
+				if(checkUrlStatus(completeUrl)==true){
+					status=false;
 
+					return completeUrl;
+				}else{
+					staticUrl="http://maven.wso2.org/nexus/content/groups/public/";
+					sGroupId=sGroupId.replace('.', '/');
+					groupIdUrl=staticUrl.concat(sGroupId);
+					groupIdPlusUrl=groupIdUrl.concat("/");
+					completeUrl=groupIdPlusUrl.concat(sArtifactId);
+					if(checkUrlStatus(completeUrl)==true){
+						status=false;
+						return completeUrl;
+					}
+				}
+			}
+
+		}else{
 			staticUrl = "http://mvnrepository.com/artifact/";
 			groupIdUrl=staticUrl.concat(sGroupId);
 			groupIdPlusUrl=groupIdUrl.concat("/");
@@ -71,12 +103,12 @@ public class UrlValidate {
 					}
 				}
 			}
-		
+		}
 
 
 		System.out.println("Can't find the dependency url");
 		return null;
-	}
+		}
 
 	public boolean checkUrlStatus(String completeUrl){
 		try{
