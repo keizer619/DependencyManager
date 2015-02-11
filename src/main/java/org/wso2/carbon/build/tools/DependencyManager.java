@@ -32,9 +32,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.wso2.carbon.build.data.VersionManager;
+
 public class DependencyManager {
 
     private static final Log logger = LogFactory.getLog(DependencyManager.class);
+    static VersionManager versionManager = new VersionManager();
 
     public static void main(String [] args) throws Exception {
        processDependencies();
@@ -120,6 +123,8 @@ public class DependencyManager {
         System.out.println("Total Dependencies : " + dependencies.size());
         System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
         System.out.println("Pom Files :" +  pomFiles.size());
+        
+        versionManager.VersionManage(uniqueDependencies);
     }
 
     /**
