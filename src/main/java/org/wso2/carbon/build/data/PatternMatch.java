@@ -52,11 +52,47 @@ public class PatternMatch {
 	int indexCheckLine=0;
 	int indexVersion=0;
 
-	public String getMAtchDetails(String sGroupId,String sVersion,String completeUrl){ 
+	public String getMAtchDetails(String sGroupId,String sVersion,String completeUrl,String repository){ 
 		try {
 			buffReader = new BufferedReader(new FileReader(Constants.READ_FILE_PATH));
 
+			if(repository.equalsIgnoreCase("wso2")){
+				int urlIndex=completeUrl.length();
 				while ((sCurrentLine = buffReader.readLine()) != null) {
+					String text = sCurrentLine;
+					if (text.contains("<a href=\""+completeUrl+"/")){
+						int index=text.indexOf('"');
+						checkLine=text.substring(index+urlIndex+2);		
+						checkLine=checkLine.split("/")[0];
+						char c=checkLine.charAt(0);
+						if(Character.isDigit(c)){
+							try{
+							checkVariable=checkLatestVersion(checkLine, max);
+							}catch(Exception e){
+								
+							}
+						}				
+					}
+					
+				}
+				//Check whether the version exists
+				HttpURLConnection httpUrlConn;
+				try{
+					httpUrlConn = (HttpURLConnection) new URL(completeUrl+"/"+sVersion).openConnection();
+					httpUrlConn.setRequestMethod("HEAD");
+					httpUrlConn.setConnectTimeout(30000);
+					httpUrlConn.setReadTimeout(30000);
+
+					if(httpUrlConn.getResponseCode() == HttpURLConnection.HTTP_OK==true){
+				    	VersionManager versionManager = new VersionManager();
+				    	versionManager.setValid();
+					}
+				}catch (Exception ex) {
+					System.out.println("Exception");
+				}
+		
+		}else{
+			while ((sCurrentLine = buffReader.readLine()) != null) {
 					String text = sCurrentLine;
 					if (sCurrentLine.contains("class=\"vbtn")){
 						checkLine = text.substring(text.lastIndexOf("\"") + 2);
@@ -79,6 +115,7 @@ public class PatternMatch {
 						}
 					}
 				}
+		}
 
 				//Check whether the given version exists
 				HttpURLConnection httpUrlConn;
