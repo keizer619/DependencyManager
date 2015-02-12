@@ -26,17 +26,17 @@ public class Constants {
     public static final String XPATH_PARENT_GROUP_ID = "/project/parent/groupId";
     public static final String XPATH_PARENT_VERSION = "/project/parent/version";
 
-    public static final String ROOT_PATH = "/home/nishali/Documents/snap/git";
+    public static final String ROOT_PATH = "/Users/tharik/Desktop/git/rep";
     public static boolean IS_ALL_POMS = false;
     public static  String POM_FILE_NAME = "pom.xml";
 
-    public static final String M2_PATH = "/home/nishali/.m2/repository";
+    public static final String M2_PATH = "/Users/tharik/.m2/repository";
     public static final String DEFAULT_SOURCE_NAME = "Other";
     public static final String DEPENDENCY_SEPERATOR = ":";
     
-    public static final String READ_FILE_PATH="/home/nishali/Documents/Git/DependencyManager/out.txt";
+    public static final String READ_FILE_PATH="/Users/tharik/projects/DependencyManager/out.txt";
     
     public static final String DATABASE_CONNECTION="jdbc:mysql://localhost/DependencyManager";
-    public static final String MYSQL_USERNAME="";
-    public static final String MYSQL_PASSWORD="";
+    public static final String MYSQL_USERNAME="root";
+    public static final String MYSQL_PASSWORD="Root@wso2";
 }

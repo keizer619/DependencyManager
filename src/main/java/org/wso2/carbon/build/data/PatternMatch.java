@@ -22,31 +22,21 @@ package org.wso2.carbon.build.data;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.net.URL;
 import java.net.HttpURLConnection;
 
-import org.wso2.carbon.build.data.VersionManager;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.build.tools.Constants;
 
 public class PatternMatch {
 
-	String patternStringLatest=null;
-	Pattern patternLatest=null;
-	Matcher matcherLatest=null;
-	boolean matchesLatest=false;
-
-	boolean valid = false;
+    private static final Log logger = LogFactory.getLog(PatternMatch.class);
 	BufferedReader buffReader = null;
 
 	String checkVariable=null;
 	String sCurrentLine=null;
 	String checkLine=null;
-	InputStream inStream = null;
-	String digits=null;
-	long digitInt=0;
 	String max="0.0";
 
 	int indexCheckLine=0;
@@ -88,7 +78,7 @@ public class PatternMatch {
 				    	versionManager.setValid();
 					}
 				}catch (Exception ex) {
-					System.out.println("Exception");
+                    logger.error("Exception occurred : " + ex.getMessage());
 				}
 		
 		}else{
@@ -110,8 +100,8 @@ public class PatternMatch {
 								}
 							}
 
-						}catch(Exception e){
-
+						}catch(Exception ex){
+                            logger.error("Exception occurred : " + ex.getMessage());
 						}
 					}
 				}
@@ -130,13 +120,12 @@ public class PatternMatch {
 						versionManager.setValid();
 					}
 				}catch (Exception ex) {
-					System.out.println("Exception");
+                    logger.error("Exception occurred : " + ex.getMessage());
 				}
 			
 
-		} catch (IOException e) {
-			System.out.println("Error in Pattern Match");
-			e.printStackTrace();
+		} catch (IOException ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
 		}
 		return checkVariable;
 	}
@@ -204,16 +193,14 @@ public class PatternMatch {
 			maxMajorVersion=max;
 		}
 
-		//=============================================================================================
-
-
 		if(Long.parseLong(checkMajorVersion)>Long.parseLong(maxMajorVersion)){ //1
 			this.max=version;
 			return this.max;
 		}else if(Long.parseLong(checkMajorVersion)==Long.parseLong(maxMajorVersion)){ //2
 			if(checkMinorVersion!=null){
 				if (checkMinorVersion.contains("-")){
-					checkMinorLetters=checkMinorVersion.substring(checkMinorVersion.indexOf('-')+1, checkMinorVersion.length());
+					checkMinorLetters=checkMinorVersion.substring(checkMinorVersion.indexOf('-')+1,
+                            checkMinorVersion.length());
 					checkMinorVersion=checkMinorVersion.substring(0, checkMinorVersion.indexOf('-'));	
 				}
 			}else{
@@ -247,19 +234,24 @@ public class PatternMatch {
 				}else if(checkMinorLetters==null && maxMinorLetters!=null){ //8
 					maxMinorLetters=null;
 					return this.max;
-				}else if(checkMinorLetters!=null && maxMinorLetters!=null && checkMinorLetters.compareTo(maxMinorLetters)>0){ //9,11
+				}else if(checkMinorLetters!=null && maxMinorLetters!=null
+                        && checkMinorLetters.compareTo(maxMinorLetters)>0){ //9,11
 					this.max=version;
 					checkMinorLetters=null;
 					maxMinorLetters=null;
 					return this.max;
-				}else if(checkMinorLetters!=null && maxMinorLetters!=null && checkMinorLetters.compareTo(maxMinorLetters)<0){ //9,13
+				}else if(checkMinorLetters!=null && maxMinorLetters!=null
+                        && checkMinorLetters.compareTo(maxMinorLetters)<0){ //9,13
 					checkMinorLetters=null;
 					maxMinorLetters=null;
 					return this.max;
-				}else if(checkMinorLetters!=null && maxMinorLetters!=null && checkMinorLetters.compareTo(maxMinorLetters)==0 || checkMinorLetters==null && maxMinorLetters==null){ //10,12
+				}else if(checkMinorLetters!=null && maxMinorLetters!=null
+                        && checkMinorLetters.compareTo(maxMinorLetters)==0
+                        || checkMinorLetters==null && maxMinorLetters==null){ //10,12
 					if(checkPatchVersion!=null){
 						if (checkPatchVersion.contains("-")){
-							checkPatchLetters=checkPatchVersion.substring(checkPatchVersion.indexOf('-')+1, checkPatchVersion.length());
+							checkPatchLetters=checkPatchVersion.substring(checkPatchVersion.indexOf('-')+1,
+                                    checkPatchVersion.length());
 							checkPatchVersion=checkPatchVersion.substring(0, checkPatchVersion.indexOf('-'));	
 						}
 					}else{
@@ -269,7 +261,8 @@ public class PatternMatch {
 
 					if(maxPatchVersion!=null){
 						if (maxPatchVersion.contains("-")){
-							maxPatchLetters=maxPatchVersion.substring(maxPatchVersion.indexOf('-')+1, maxPatchVersion.length());
+							maxPatchLetters=maxPatchVersion.substring(maxPatchVersion.indexOf('-')+1,
+                                    maxPatchVersion.length());
 							maxPatchVersion=maxPatchVersion.substring(0, maxPatchVersion.indexOf('-'));	
 						}
 					}else{
@@ -289,16 +282,20 @@ public class PatternMatch {
 						}else if(checkPatchLetters==null && maxPatchLetters!=null){ //18
 							maxPatchLetters=null;
 							return this.max;
-						}else if(checkPatchLetters!=null && maxPatchLetters!=null && checkPatchLetters.compareTo(maxPatchLetters)>0){ //19,23
+						}else if(checkPatchLetters!=null && maxPatchLetters!=null
+                                && checkPatchLetters.compareTo(maxPatchLetters)>0){ //19,23
 							this.max=version;
 							checkPatchLetters=null;
 							maxPatchLetters=null;
 							return this.max;
-						}else if(checkPatchLetters!=null && maxPatchLetters!=null && checkPatchLetters.compareTo(maxPatchLetters)<0){ //19,22
+						}else if(checkPatchLetters!=null && maxPatchLetters!=null
+                                && checkPatchLetters.compareTo(maxPatchLetters)<0){ //19,22
 							checkPatchLetters=null;
 							maxPatchLetters=null;
 							return this.max;
-						}else if(checkPatchLetters!=null && maxPatchLetters!=null && checkPatchLetters.compareTo(maxPatchLetters)==0 || checkPatchLetters==null && maxPatchLetters==null){ //20,21
+						}else if(checkPatchLetters!=null && maxPatchLetters!=null
+                                && checkPatchLetters.compareTo(maxPatchLetters)==0
+                                || checkPatchLetters==null && maxPatchLetters==null){ //20,21
 							checkPatchLetters=null;
 							maxPatchLetters=null;
 							return this.max;

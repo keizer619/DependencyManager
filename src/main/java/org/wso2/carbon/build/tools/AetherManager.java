@@ -59,7 +59,8 @@ public class AetherManager
                                         DefaultRepositorySystemSession session, List<RemoteRepository> repositories,
                                         String currentRepository) throws Exception {
 
-        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
+        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies =
+                new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
         Artifact artifact = new DefaultArtifact(groupId + Constants.DEPENDENCY_SEPERATOR + artifactId
                                                 + Constants.DEPENDENCY_SEPERATOR  + version);
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
@@ -90,7 +91,8 @@ public class AetherManager
     public static ArrayList<org.wso2.carbon.build.tools.dto.Dependency> loadDependenciesFromLocal(String groupId,
                                      String artifactId, String version , String currentRepository) throws Exception {
 
-        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies = new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
+        ArrayList<org.wso2.carbon.build.tools.dto.Dependency> dependencies =
+                new ArrayList<org.wso2.carbon.build.tools.dto.Dependency>();
 
         RepositorySystem system = AetherManager.newRepositorySystem();
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();

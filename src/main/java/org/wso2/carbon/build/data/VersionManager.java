@@ -35,13 +35,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.build.tools.dto.Dependency;
-import org.wso2.carbon.build.data.UrlValidate;
 import org.wso2.carbon.build.tools.Constants;
 
 
 public class VersionManager {
 
+    private static final Log logger = LogFactory.getLog(PatternMatch.class);
 	private static Connection connect = null;
 
 	static URL newUrl=null;
@@ -51,20 +53,21 @@ public class VersionManager {
 	static BufferedWriter bufferedWriter = null;
 	static boolean valid = false;
 
-	static int maxId=0;
-
 	public void VersionManage(ArrayList<Dependency> uniqueDependencies){
 		UrlValidate urlValidate = new UrlValidate();
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, "nishali", "thilanka");
+			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, Constants.MYSQL_USERNAME,
+                    Constants.MYSQL_PASSWORD);
 			Statement stmt = connect.createStatement();
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){
 					
 					//insert data into RepositoryTable
-					ResultSet compareRepository = stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"+uniqueDependencies.get(i).getRepositoryDepends()+"'");												
+					ResultSet compareRepository = stmt.executeQuery(
+                            "SELECT RepoId FROM RepositoryTable WHERE RepoName='"
+                            +uniqueDependencies.get(i).getRepositoryDepends()+"'");
 					if(!compareRepository.next()){
 						String insertRepositoryQuery="INSERT INTO RepositoryTable VALUES(?,?,?)";
 						PreparedStatement insertRepositorySt = connect.prepareStatement(insertRepositoryQuery);
@@ -75,10 +78,15 @@ public class VersionManager {
 					}
 					
 					//insert into DependencyTable
-					ResultSet compareDependency = stmt.executeQuery("SELECT GroupId FROM DependencyTable WHERE GroupId='"+uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()+"' AND Version='"+uniqueDependencies.get(i).getVersion()+"'");
+					ResultSet compareDependency = stmt.executeQuery(
+                            "SELECT GroupId FROM DependencyTable WHERE GroupId='"
+                                    +uniqueDependencies.get(i).getGroupId()
+                                    +"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()
+                                    +"' AND Version='"+uniqueDependencies.get(i).getVersion()+"'");
 					if(!compareDependency.next()){
 						int sourceRepoId=0;
-						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"+uniqueDependencies.get(i).getRepositoryDepends()+"'");
+						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"
+                                +uniqueDependencies.get(i).getRepositoryDepends()+"'");
 						while (repoId.next()) {
 							sourceRepoId=repoId.getInt(1);
 						}
@@ -94,7 +102,8 @@ public class VersionManager {
 					}
 					
 
-					String url = urlValidate.checkUrl(uniqueDependencies.get(i).getArtifactId(), uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion());
+					String url = urlValidate.checkUrl(uniqueDependencies.get(i).getArtifactId(),
+                            uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion());
 					String repository=null;
 					if(url!=null){
 						if(url.contains("wso2")){
@@ -105,8 +114,8 @@ public class VersionManager {
 						newUrl = new URL(url);
 						try{
 							inStream = newUrl.openStream();
-						}catch (Exception e) {
-							System.out.println("Error-open stream");
+						}catch (Exception ex) {
+                            logger.error("Exception occurred : " + ex.getMessage());
 						}
 						dataInStream = new DataInputStream(new BufferedInputStream(inStream));
 						bufferedWriter = new BufferedWriter(new FileWriter("out.txt"));
@@ -119,24 +128,36 @@ public class VersionManager {
 
 						//Read out.txt file
 						PatternMatch patternMatch = new PatternMatch();
-						String latestVersion=patternMatch.getMAtchDetails(uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion(), url,repository);
+						String latestVersion=patternMatch.getMAtchDetails(uniqueDependencies.get(i).getGroupId(),
+                                uniqueDependencies.get(i).getVersion(), url,repository);
 					
 						//Update the latestVersion in DependencyTable
-						String insertVersionQuery = "update DependencyTable set latestVersion = ? where GroupId='"+uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()+"' AND Version='"+uniqueDependencies.get(i).getVersion()+"'";
+						String insertVersionQuery = "update DependencyTable set latestVersion = ? where GroupId='"
+                                +uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"
+                                +uniqueDependencies.get(i).getArtifactId()+"' AND Version='"
+                                +uniqueDependencies.get(i).getVersion()+"'";
 						PreparedStatement update = connect.prepareStatement(insertVersionQuery);
 						update.setString(1, latestVersion);
 						update.execute();
 						 
 						//insert into RepositoryDependencyTable
 						int sourceRepoId2=0;
-						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"+uniqueDependencies.get(i).getRepositoryDepends()+"'");
+						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"
+                                +uniqueDependencies.get(i).getRepositoryDepends()+"'");
 						while (repoId.next()) {
 							sourceRepoId2=repoId.getInt(1);
 						}
-						ResultSet compareRepoDependency = stmt.executeQuery ("SELECT * FROM RepositoryDependencyTable WHERE GroupId='"+uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()+"' AND Version='"+uniqueDependencies.get(i).getVersion()+"' AND SourceRepoId='"+sourceRepoId2+"'");
+						ResultSet compareRepoDependency = stmt.executeQuery (
+                                "SELECT * FROM RepositoryDependencyTable WHERE GroupId='"
+                                        +uniqueDependencies.get(i).getGroupId()
+                                        +"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()
+                                        +"' AND Version='"+uniqueDependencies.get(i).getVersion()
+                                        +"' AND SourceRepoId='"+sourceRepoId2+"'");
+
 						if(!compareRepoDependency.next()){
-							String insertRepoDepndencyQuery="INSERT INTO RepositoryDependencyTable values(?,?,?,?)";
-							PreparedStatement insertRepoDependencySt = connect.prepareStatement(insertRepoDepndencyQuery);
+							String insertRepoDependencyQuery="INSERT INTO RepositoryDependencyTable values(?,?,?,?)";
+							PreparedStatement insertRepoDependencySt =
+                                    connect.prepareStatement(insertRepoDependencyQuery);
 							insertRepoDependencySt.setString(1, uniqueDependencies.get(i).getGroupId());
 							insertRepoDependencySt.setString(2, uniqueDependencies.get(i).getArtifactId());
 							insertRepoDependencySt.setString(3, uniqueDependencies.get(i).getVersion());
@@ -150,15 +171,21 @@ public class VersionManager {
 			}
 			stmt.close();
 			connect.close();
-		}catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-		} catch (MalformedURLException e) {
-			System.out.println("MalformedURL");
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		}catch (SQLException ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
 		}
+        catch (ClassNotFoundException ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
+		}
+        catch (MalformedURLException ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
+		}
+        catch (IOException ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
+		}
+        catch (Exception ex) {
+            logger.error("Exception occurred : " + ex.getMessage());
+        }
 
 	}
 

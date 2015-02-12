@@ -19,12 +19,17 @@
 
 package org.wso2.carbon.build.data;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 
 
 public class UrlValidate {
+
+    private static final Log logger = LogFactory.getLog(PatternMatch.class);
 
 	String staticUrl=null;
 	String groupIdUrl=null;
@@ -104,9 +109,6 @@ public class UrlValidate {
 				}
 			}
 		}
-
-
-		System.out.println("Can't find the dependency url");
 		return null;
 		}
 
@@ -120,7 +122,7 @@ public class UrlValidate {
 			status=httpUrlConn.getResponseCode() == HttpURLConnection.HTTP_OK;
 
 		}catch (Exception ex) {
-			System.out.println("Exception");
+            logger.error("Exception occurred : " + ex.getMessage());
 		}
 		return status;
 	}
