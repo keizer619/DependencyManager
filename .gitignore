@@ -3540,3 +3540,8 @@ target/local-repo/org/wso2/ts/ts-integration-tests-common/1.2.0-SNAPSHOT/resolve
 target/local-repo/org/wso2/ts/ts-styles/1.2.0-SNAPSHOT/resolver-status.properties
 target/local-repo/org/wso2/ts/ts/1.2.0-SNAPSHOT/resolver-status.properties
 target/local-repo/org/wso2/wsdl4j/wsdl4j/1.6.3-wso2v1-SNAPSHOT/resolver-status.properties
+.idea/libraries/Maven__org_eclipse_aether_aether_api_0_9_0_M2.xml
+.idea/libraries/Maven__org_eclipse_aether_aether_impl_0_9_0_M2.xml
+.idea/libraries/Maven__org_eclipse_aether_aether_spi_0_9_0_M2.xml
+.idea/libraries/Maven__org_eclipse_aether_aether_util_0_9_0_M2.xml
+dashboard/dashboard.iml

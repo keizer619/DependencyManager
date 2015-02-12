@@ -17,7 +17,7 @@
  **/
 
 
-package org.wso2.carbon.build.data;
+package org.wso2.carbon.build.tools.data;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,10 +27,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import org.wso2.carbon.build.tools.Constants;
+import org.wso2.carbon.build.tools.dto.Dependency;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.build.tools.dto.Dependency;
-import org.wso2.carbon.build.tools.Constants;
 
 
 public class VersionManager {

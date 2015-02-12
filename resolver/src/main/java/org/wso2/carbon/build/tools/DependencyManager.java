@@ -19,23 +19,21 @@
 package org.wso2.carbon.build.tools;
 
 import java.io.*;
-import java.net.URL;
 import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+
+import org.wso2.carbon.build.tools.dto.Dependency;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.build.data.PatternMatch;
-import org.wso2.carbon.build.data.UrlValidate;
-import org.wso2.carbon.build.tools.dto.Dependency;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.wso2.carbon.build.data.VersionManager;
+import org.wso2.carbon.build.tools.data.VersionManager;
 
 public class DependencyManager {
 

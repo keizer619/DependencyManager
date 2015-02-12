@@ -17,7 +17,7 @@
  **/
 
 
-package org.wso2.carbon.build.data;
+package org.wso2.carbon.build.tools.data;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -46,7 +46,7 @@ public class PatternMatch {
 		try {
 			buffReader = new BufferedReader(new FileReader(Constants.READ_FILE_PATH));
 
-			if(repository.equalsIgnoreCase("wso2")){
+			if(repository.equalsIgnoreCase("org/wso2")){
 				int urlIndex=completeUrl.length();
 				while ((sCurrentLine = buffReader.readLine()) != null) {
 					String text = sCurrentLine;

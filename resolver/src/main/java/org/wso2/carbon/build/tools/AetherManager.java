@@ -36,8 +36,8 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
-import org.wso2.carbon.build.data.PatternMatch;
-import org.wso2.carbon.build.data.UrlValidate;
+import org.wso2.carbon.build.tools.data.PatternMatch;
+import org.wso2.carbon.build.tools.data.UrlValidate;
 
 import java.io.*;
 import java.lang.Exception;
@@ -174,8 +174,8 @@ public class AetherManager
 
             try {
 
-                if (url.contains("wso2")) {
-                    repository = "wso2";
+                if (url.contains("org/wso2")) {
+                    repository = "org/wso2";
                 } else {
                     repository = "maven";
                 }
