@@ -1,7 +1,5 @@
 <%@page import="java.sql.*"%>
-<%@page import="javax.sql.*"%>
 <%@page import="java.sql.Connection"%>
-<%@page import="java.sql.PreparedStatement" %>
 
 <html>
 <head>
@@ -24,6 +22,7 @@
 <body>
 
 <%
+
 Class.forName("com.mysql.jdbc.Driver");
 Connection con = DriverManager.getConnection(
 		"jdbc:mysql://localhost:3306/DependencyManager", "root",
