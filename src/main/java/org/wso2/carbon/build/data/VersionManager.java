@@ -43,18 +43,14 @@ import org.wso2.carbon.build.tools.Constants;
 
 public class VersionManager {
 
-    private static final Log logger = LogFactory.getLog(PatternMatch.class);
+    private static final Log logger = LogFactory.getLog(VersionManager.class);
 	private static Connection connect = null;
 
-	static URL newUrl=null;
-	static InputStream inStream = null;
-	static DataInputStream dataInStream = null;
-	static String line=null;
-	static BufferedWriter bufferedWriter = null;
+
 	static boolean valid = false;
 
 	public void VersionManage(ArrayList<Dependency> uniqueDependencies){
-		UrlValidate urlValidate = new UrlValidate();
+
 
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
@@ -63,8 +59,12 @@ public class VersionManager {
 			Statement stmt = connect.createStatement();
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){
-					
-					//insert data into RepositoryTable
+
+                  try{
+
+
+
+                    //insert data into RepositoryTable
 					ResultSet compareRepository = stmt.executeQuery(
                             "SELECT RepoId FROM RepositoryTable WHERE RepoName='"
                             +uniqueDependencies.get(i).getRepositoryDepends()+"'");
@@ -96,75 +96,41 @@ public class VersionManager {
 						insertDependencySt.setString(1, uniqueDependencies.get(i).getGroupId());
 						insertDependencySt.setString(2, uniqueDependencies.get(i).getArtifactId());
 						insertDependencySt.setString(3, uniqueDependencies.get(i).getVersion());
-						insertDependencySt.setString(4, null);
+						insertDependencySt.setString(4, uniqueDependencies.get(i).getLatestVersion());
 						insertDependencySt.setInt(5, sourceRepoId);
 						insertDependencySt.execute();
 					}
-					
 
-					String url = urlValidate.checkUrl(uniqueDependencies.get(i).getArtifactId(),
-                            uniqueDependencies.get(i).getGroupId(), uniqueDependencies.get(i).getVersion());
-					String repository=null;
-					if(url!=null){
-						if(url.contains("wso2")){
-							repository="wso2";
-						}else{
-							repository="maven";
-						}
-						newUrl = new URL(url);
-						try{
-							inStream = newUrl.openStream();
-						}catch (Exception ex) {
-                            logger.error("Exception occurred : " + ex.getMessage());
-						}
-						dataInStream = new DataInputStream(new BufferedInputStream(inStream));
-						bufferedWriter = new BufferedWriter(new FileWriter("out.txt"));
 
-						while ((line = dataInStream.readLine()) != null) {
-							bufferedWriter.write(line);
-							bufferedWriter.newLine();
-							bufferedWriter.flush();
 						}
+                  catch (Exception ex)
+                  {
 
-						//Read out.txt file
-						PatternMatch patternMatch = new PatternMatch();
-						String latestVersion=patternMatch.getMAtchDetails(uniqueDependencies.get(i).getGroupId(),
-                                uniqueDependencies.get(i).getVersion(), url,repository);
-					
-						//Update the latestVersion in DependencyTable
-						String insertVersionQuery = "update DependencyTable set latestVersion = ? where GroupId='"
-                                +uniqueDependencies.get(i).getGroupId()+"' AND ArtifactId='"
-                                +uniqueDependencies.get(i).getArtifactId()+"' AND Version='"
-                                +uniqueDependencies.get(i).getVersion()+"'";
-						PreparedStatement update = connect.prepareStatement(insertVersionQuery);
-						update.setString(1, latestVersion);
-						update.execute();
-						 
-						//insert into RepositoryDependencyTable
-						int sourceRepoId2=0;
-						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"
+                  }
+
+                //insert into RepositoryDependencyTable
+                        int sourceRepoId2=0;
+                        ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"
                                 +uniqueDependencies.get(i).getRepositoryDepends()+"'");
-						while (repoId.next()) {
-							sourceRepoId2=repoId.getInt(1);
-						}
-						ResultSet compareRepoDependency = stmt.executeQuery (
+                        while (repoId.next()) {
+                            sourceRepoId2=repoId.getInt(1);
+                        }
+                        ResultSet compareRepoDependency = stmt.executeQuery (
                                 "SELECT * FROM RepositoryDependencyTable WHERE GroupId='"
                                         +uniqueDependencies.get(i).getGroupId()
                                         +"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()
                                         +"' AND Version='"+uniqueDependencies.get(i).getVersion()
                                         +"' AND SourceRepoId='"+sourceRepoId2+"'");
 
-						if(!compareRepoDependency.next()){
-							String insertRepoDependencyQuery="INSERT INTO RepositoryDependencyTable values(?,?,?,?)";
-							PreparedStatement insertRepoDependencySt =
+                        if(!compareRepoDependency.next()){
+                            String insertRepoDependencyQuery="INSERT INTO RepositoryDependencyTable values(?,?,?,?)";
+                            PreparedStatement insertRepoDependencySt =
                                     connect.prepareStatement(insertRepoDependencyQuery);
-							insertRepoDependencySt.setString(1, uniqueDependencies.get(i).getGroupId());
-							insertRepoDependencySt.setString(2, uniqueDependencies.get(i).getArtifactId());
-							insertRepoDependencySt.setString(3, uniqueDependencies.get(i).getVersion());
-							insertRepoDependencySt.setInt(4, sourceRepoId2);
-							insertRepoDependencySt.execute();
-						}
-						
+                            insertRepoDependencySt.setString(1, uniqueDependencies.get(i).getGroupId());
+                            insertRepoDependencySt.setString(2, uniqueDependencies.get(i).getArtifactId());
+                            insertRepoDependencySt.setString(3, uniqueDependencies.get(i).getVersion());
+                            insertRepoDependencySt.setInt(4, sourceRepoId2);
+                            insertRepoDependencySt.execute();
 						
 					}
 				
@@ -175,12 +141,6 @@ public class VersionManager {
             logger.error("Exception occurred : " + ex.getMessage());
 		}
         catch (ClassNotFoundException ex) {
-            logger.error("Exception occurred : " + ex.getMessage());
-		}
-        catch (MalformedURLException ex) {
-            logger.error("Exception occurred : " + ex.getMessage());
-		}
-        catch (IOException ex) {
             logger.error("Exception occurred : " + ex.getMessage());
 		}
         catch (Exception ex) {

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.build.tools;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -34,14 +36,21 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.wso2.carbon.build.data.PatternMatch;
+import org.wso2.carbon.build.data.UrlValidate;
+
+import java.io.*;
 import java.lang.Exception;
 import java.lang.String;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class AetherManager
 {
+    private static final Log logger = LogFactory.getLog(AetherManager.class);
+
     /**
      * Provide dependencies on given artifact by checking against given remote repositories
      * @param groupId
@@ -128,6 +137,7 @@ public class AetherManager
         dep.setVersion(dependency.getArtifact().getVersion().toString());
         dep.setRepositoryDepends(currentRepository);
         dep.setRepositorySource(Constants.DEFAULT_SOURCE_NAME);
+        dep.setLatestVersion(AetherManager.getLatestVersion(dep));
 
         return dep;
     }
@@ -146,5 +156,55 @@ public class AetherManager
         } );
 
         return locator.getService(RepositorySystem.class);
+    }
+
+    public static String getLatestVersion(org.wso2.carbon.build.tools.dto.Dependency dependency) {
+        String latestVersion = "";
+        UrlValidate urlValidate = new UrlValidate();
+        String url = urlValidate.checkUrl(dependency.getArtifactId(),
+                dependency.getGroupId(), dependency.getVersion());
+        String repository;
+        URL newUrl;
+        InputStream inStream = null;
+        DataInputStream dataInStream;
+        String line;
+        BufferedWriter bufferedWriter;
+
+        if (url != null) {
+
+            try {
+
+                if (url.contains("wso2")) {
+                    repository = "wso2";
+                } else {
+                    repository = "maven";
+                }
+                newUrl = new URL(url);
+                try {
+                    inStream = newUrl.openStream();
+                } catch (Exception ex) {
+                    logger.error("Exception occurred : " + ex.getMessage());
+                }
+                dataInStream = new DataInputStream(new BufferedInputStream(inStream));
+                bufferedWriter = new BufferedWriter(new FileWriter("out.txt"));
+
+                while ((line = dataInStream.readLine()) != null) {
+                    bufferedWriter.write(line);
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                }
+
+                //Read out.txt file
+                PatternMatch patternMatch = new PatternMatch();
+                latestVersion = patternMatch.getMAtchDetails(dependency.getGroupId(),
+                        dependency.getVersion(), url, repository);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        return latestVersion;
     }
 }

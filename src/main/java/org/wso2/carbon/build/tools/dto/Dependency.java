@@ -25,6 +25,7 @@ public class Dependency {
     private String version;
     private String repositoryDepends;
     private String repositorySource;
+    private String latestVersion;
 
 
     public String getGroupId() {
@@ -65,5 +66,13 @@ public class Dependency {
 
     public void setRepositorySource(String repositorySource) {
         this.repositorySource = repositorySource;
+    }
+
+    public String getLatestVersion() {
+        return latestVersion;
+    }
+
+    public void setLatestVersion(String latestVersion) {
+        this.latestVersion = latestVersion;
     }
 }
