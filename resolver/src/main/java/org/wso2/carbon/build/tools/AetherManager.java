@@ -137,7 +137,10 @@ public class AetherManager
         dep.setVersion(dependency.getArtifact().getVersion().toString());
         dep.setRepositoryDepends(currentRepository);
         dep.setRepositorySource(Constants.DEFAULT_SOURCE_NAME);
-        dep.setLatestVersion(AetherManager.getLatestVersion(dep));
+
+        if (Constants.GET_LATEST_VERSION){
+            dep.setLatestVersion(AetherManager.getLatestVersion(dep));
+        }
 
         return dep;
     }

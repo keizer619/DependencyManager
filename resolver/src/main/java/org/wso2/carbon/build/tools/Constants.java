@@ -28,6 +28,7 @@ public class Constants {
 
     public static final String ROOT_PATH = "/Users/tharik/Desktop/git/rep";
     public static boolean IS_ALL_POMS = false;
+    public static boolean GET_LATEST_VERSION = true;
     public static  String POM_FILE_NAME = "pom.xml";
 
     public static final String M2_PATH = "/Users/tharik/.m2/repository";
