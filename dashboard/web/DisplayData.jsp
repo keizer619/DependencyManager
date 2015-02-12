@@ -5,7 +5,21 @@
 
 <html>
 <head>
-<title>Display Data</title>
+    <title>Results</title>
+
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/jquery.dataTables.css" />
+    <script type="text/javascript" src="js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#tbMain').dataTable( {
+                "paging":   true,
+                "ordering": true,
+                "info":     true
+            } );
+        } );
+    </script>
+
 </head>
 <body>
 
