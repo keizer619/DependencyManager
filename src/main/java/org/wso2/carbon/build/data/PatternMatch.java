@@ -220,30 +220,21 @@ public class PatternMatch {
 
 			if(Long.parseLong(checkMinorVersion)>Long.parseLong(maxMinorVersion)){ //4
 				this.max=version;
-				checkMinorLetters=null;
-				maxMinorLetters=null;
 				return this.max;
 			}else if(Long.parseLong(checkMinorVersion)<Long.parseLong(maxMinorVersion)){ //6
-				checkMinorLetters=null;
 				return this.max;
 			}else if(Long.parseLong(checkMinorVersion)==Long.parseLong(maxMinorVersion)){ //5
 				if(checkMinorLetters!=null && maxMinorLetters==null){ //7
-					checkMinorLetters=null;
 					this.max=version;
 					return this.max;
 				}else if(checkMinorLetters==null && maxMinorLetters!=null){ //8
-					maxMinorLetters=null;
 					return this.max;
 				}else if(checkMinorLetters!=null && maxMinorLetters!=null
                         && checkMinorLetters.compareTo(maxMinorLetters)>0){ //9,11
 					this.max=version;
-					checkMinorLetters=null;
-					maxMinorLetters=null;
 					return this.max;
 				}else if(checkMinorLetters!=null && maxMinorLetters!=null
                         && checkMinorLetters.compareTo(maxMinorLetters)<0){ //9,13
-					checkMinorLetters=null;
-					maxMinorLetters=null;
 					return this.max;
 				}else if(checkMinorLetters!=null && maxMinorLetters!=null
                         && checkMinorLetters.compareTo(maxMinorLetters)==0
@@ -271,33 +262,24 @@ public class PatternMatch {
 					}
 
 					if(Long.parseLong(checkPatchVersion)>Long.parseLong(maxPatchVersion)){ //14
-						maxMinorLetters=null;
 						this.max=version;
 						return this.max;
 					}else if(Long.parseLong(checkPatchVersion)==Long.parseLong(maxPatchVersion)){ //15
 						if(checkPatchLetters!=null && maxPatchLetters==null){ //17
-							checkPatchLetters=null;
 							this.max=version;
 							return this.max;
 						}else if(checkPatchLetters==null && maxPatchLetters!=null){ //18
-							maxPatchLetters=null;
 							return this.max;
 						}else if(checkPatchLetters!=null && maxPatchLetters!=null
                                 && checkPatchLetters.compareTo(maxPatchLetters)>0){ //19,23
 							this.max=version;
-							checkPatchLetters=null;
-							maxPatchLetters=null;
 							return this.max;
 						}else if(checkPatchLetters!=null && maxPatchLetters!=null
                                 && checkPatchLetters.compareTo(maxPatchLetters)<0){ //19,22
-							checkPatchLetters=null;
-							maxPatchLetters=null;
 							return this.max;
 						}else if(checkPatchLetters!=null && maxPatchLetters!=null
                                 && checkPatchLetters.compareTo(maxPatchLetters)==0
                                 || checkPatchLetters==null && maxPatchLetters==null){ //20,21
-							checkPatchLetters=null;
-							maxPatchLetters=null;
 							return this.max;
 						}
 					}

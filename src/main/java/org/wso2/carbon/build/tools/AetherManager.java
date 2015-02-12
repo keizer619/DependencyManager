@@ -199,9 +199,8 @@ public class AetherManager
                 latestVersion = patternMatch.getMAtchDetails(dependency.getGroupId(),
                         dependency.getVersion(), url, repository);
             }
-            catch (Exception ex)
-            {
-
+            catch (Exception ex) {
+                logger.error("Exception occurred : " + ex.getMessage());
             }
         }
 

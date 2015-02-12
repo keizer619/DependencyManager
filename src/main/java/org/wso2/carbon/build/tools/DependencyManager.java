@@ -123,8 +123,7 @@ public class DependencyManager {
                                 [Constants.ROOT_PATH.split(File.separator).length]));
 
                }
-               catch (Exception ex)
-               {
+               catch (Exception ex) {
                    logger.error("Exception occurred when loading pom dependency " + ex.getMessage());
                }
 
