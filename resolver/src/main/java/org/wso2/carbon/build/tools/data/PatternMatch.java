@@ -57,7 +57,15 @@ public class PatternMatch {
 						char c=checkLine.charAt(0);
 						if(Character.isDigit(c)){
 							try{
-							checkVariable=checkLatestVersion(checkLine, max);
+								indexCheckLine=checkLine.indexOf('.');
+								indexVersion=sVersion.indexOf('.');
+								if(indexVersion>3){
+									checkVariable=checkLatestVersion(checkLine, max);
+								}else{
+									if(indexCheckLine<4){
+										checkVariable=checkLatestVersion(checkLine, max);
+									}
+								}
 							}catch(Exception e){
 								
 							}
