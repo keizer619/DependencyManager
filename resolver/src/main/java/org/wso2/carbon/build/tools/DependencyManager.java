@@ -56,27 +56,7 @@ public class DependencyManager {
             }
         }
 
-        System.out.println(DependencyManager.generateJsonGraph(uniqueDependencies));
-        System.out.println("Total unique Repository Dependencies : " + uniqueDependencies.size());
-
-        //Eliminates duplicated artifact repositories
-        uniqueDependencies.clear();
-        for (int i = 0; i < dependencies.size(); i++){
-
-            if (dependencies.get(i).getRepositorySource() != null) {
-
-                if (!isDependencyExists(uniqueDependencies, dependencies.get(i).getGroupId(),
-                        dependencies.get(i).getArtifactId(), dependencies.get(i).getVersion(),
-                        dependencies.get(i).getRepositoryDepends() )) {
-                    uniqueDependencies.add(dependencies.get(i));
-                }
-            }
-        }
-
-        System.out.println("Total Dependencies : " + dependencies.size());
-        System.out.println("Total unique Dependencies : " + uniqueDependencies.size());
-        
-        versionManager.VersionManage(uniqueDependencies);
+        versionManager.VersionManage(dependencies);
     }
 
     public static ArrayList<Dependency> getDependencies(String groupId, String artifactId, String version

@@ -153,8 +153,8 @@ public class AetherManager
 
         locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler() {
             @Override
-            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception ) {
-                exception.printStackTrace();
+            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable ex ) {
+                logger.error("Exception occurred : " + ex.getMessage());
             }
         } );
 
