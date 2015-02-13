@@ -1,13 +1,14 @@
-<!doctype html>
+<html>
+<head>
 
 <meta charset="utf-8">
 <title>Dependency Graph</title>
 
-<script src="js/d3.v3.js"></script>
-<script src="js/graphlib-dot.js"></script>
-<script src="js/dagre-d3.js"></script>
+<script type="text/javascript" src="js/d3.v3.js"></script>
+<script type="text/javascript" src="js/graphlib-dot.js"></script>
+<script type="text/javascript" src="js/dagre-d3.js"></script>
 
-<style>
+<style type="text/css">
 svg {
   border: 1px solid #999;
   overflow: hidden;
@@ -57,6 +58,7 @@ label {
   color: red;
 }
 </style>
+</head>
 
 
 <body onLoad="tryDraw();">
@@ -79,7 +81,7 @@ label {
   <g/>
 </svg>
 
-<script>
+<script type="text/javascript">
 // Input related code goes here
 
 function graphToURL() {
@@ -157,3 +159,7 @@ function tryDraw() {
   }
 }
 </script>
+
+</body>
+
+</html>
