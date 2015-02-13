@@ -1,3 +1,5 @@
+<%@page import="java.sql.*"%>
+<%@page import="java.sql.Connection"%>
 <html>
 <head>
 
@@ -64,23 +66,48 @@
 <body onLoad="tryDraw();">
 
 
+<%
+
+    String graphJson = "";
+
+    if (request.getParameter("graphJson") != null) {
+        graphJson=request.getParameter("graphJson");
+    }
+
+
+    Class.forName("com.mysql.jdbc.Driver");
+    Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/DependencyManager", "root",
+            "Root@wso2");
+    Statement st = con.createStatement();
+    String json = "digraph {";
+
+
+    String query="SELECT DISTINCT r.RepoName As DependRepo, rr.RepoName AS SourceRepo FROM (DependencyManager.RepositoryTable r join DependencyManager.RepositoryDependencyTable rd on r.RepoID = rd.DependRepoId) join DependencyManager.DependencyTable d on rd.ArtifactID = d.ArtifactId and rd.GroupId = d.GroupId and rd.Version = d.Version join DependencyManager.RepositoryTable rr on d.SourceRepoId = rr.RepoID where r.RepoName != rr.RepoName";
+    ResultSet rs = st.executeQuery(query);
+
+    while (rs.next()) {
+
+        json += '"' +rs.getString(1) +'"' + "->" + '"'
+                + rs.getString(2) + '"' + ";";
+
+    }
+
+    json += "}";
+%>
+
+
+
 
     <form>
       <textarea id="inputGraph" rows="5" style="display: block" onKeyUp="tryDraw();"/></textarea>
     <a id="graphLink">Link for this graph</a>
        <script type="text/javascript">
 
-       <%
-
-        String graphJson = "";
-
-        if (request.getParameter("graphJson") != null) {
-            graphJson=request.getParameter("graphJson");
-        }
-        %>
 
 
-        document.getElementById("inputGraph").value = '<%out.print(graphJson);%>';
+
+        document.getElementById("inputGraph").value = '<%out.print(json);%>';
         document.getElementById("inputGraph").style.display = "none";
         document.getElementById("graphLink").style.display = "none";
       </script>
