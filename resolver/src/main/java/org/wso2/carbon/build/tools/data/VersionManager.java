@@ -53,9 +53,6 @@ public class VersionManager {
 			for (int i = 0; i < uniqueDependencies.size(); i++){
 
                   try{
-
-
-
                     //insert data into RepositoryTable
 					ResultSet compareRepository = stmt.executeQuery(
                             "SELECT RepoId FROM RepositoryTable WHERE RepoName='"
@@ -65,6 +62,17 @@ public class VersionManager {
 						PreparedStatement insertRepositorySt = connect.prepareStatement(insertRepositoryQuery);
 						insertRepositorySt.setString(1,null);
 						insertRepositorySt.setString(2,  uniqueDependencies.get(i).getRepositoryDepends());
+						insertRepositorySt.setString(3,null);
+						insertRepositorySt.execute();
+					}
+					ResultSet compareSource=stmt.executeQuery(
+							"SELECT RepoId FROM RepositoryTable WHERE RepoName='"
+									+uniqueDependencies.get(i).getRepositorySource()+"'");
+					if(!compareSource.next()){
+						String insertRepositoryQuery="INSERT INTO RepositoryTable VALUES(?,?,?)";
+						PreparedStatement insertRepositorySt = connect.prepareStatement(insertRepositoryQuery);
+						insertRepositorySt.setString(1,null);
+						insertRepositorySt.setString(2,  uniqueDependencies.get(i).getRepositorySource());
 						insertRepositorySt.setString(3,null);
 						insertRepositorySt.execute();
 					}
@@ -78,7 +86,7 @@ public class VersionManager {
 					if(!compareDependency.next()){
 						int sourceRepoId=0;
 						ResultSet repoId=stmt.executeQuery("SELECT RepoId FROM RepositoryTable WHERE RepoName='"
-                                +uniqueDependencies.get(i).getRepositoryDepends()+"'");
+                                +uniqueDependencies.get(i).getRepositorySource()+"'");
 						while (repoId.next()) {
 							sourceRepoId=repoId.getInt(1);
 						}
