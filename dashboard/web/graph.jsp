@@ -67,14 +67,7 @@
 
 
 <%
-
-    String graphJson = "";
-
-    if (request.getParameter("graphJson") != null) {
-        graphJson=request.getParameter("graphJson");
-    }
-
-
+    String query;
     Class.forName("com.mysql.jdbc.Driver");
     Connection con = DriverManager.getConnection(
             "jdbc:mysql://localhost:3306/DependencyManager", "root",
@@ -82,9 +75,35 @@
     Statement st = con.createStatement();
     String json = "digraph {";
 
+    if (request.getParameter("graphType") != null && request.getParameter("graphType").equals("artifacts")) {
+        query="SELECT DISTINCT r.RepoName As DependRepo , " +
+                "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
+                " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                "WHERE r.RepoName != rr.RepoName";
+    }
+    else {
+        query="SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
+                "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                "WHERE r.RepoName != rr.RepoName";
+    }
 
-    String query="SELECT DISTINCT r.RepoName As DependRepo, rr.RepoName AS SourceRepo FROM (DependencyManager.RepositoryTable r join DependencyManager.RepositoryDependencyTable rd on r.RepoID = rd.DependRepoId) join DependencyManager.DependencyTable d on rd.ArtifactID = d.ArtifactId and rd.GroupId = d.GroupId and rd.Version = d.Version join DependencyManager.RepositoryTable rr on d.SourceRepoId = rr.RepoID where r.RepoName != rr.RepoName";
+    if (request.getParameter("repositoryName") != null){
+        query += " AND r.RepoName='"+request.getParameter("repositoryName")+"'";
+    }
+
+    if (request.getParameter("snapshots") != null && request.getParameter("snapshots").equals("true")){
+        query += "AND d.Version LIKE '%snapshot%'";
+    }
+
+
     ResultSet rs = st.executeQuery(query);
+
 
     while (rs.next()) {
 
@@ -96,17 +115,10 @@
     json += "}";
 %>
 
-
-
-
     <form>
       <textarea id="inputGraph" rows="5" style="display: block" onKeyUp="tryDraw();"/></textarea>
     <a id="graphLink">Link for this graph</a>
        <script type="text/javascript">
-
-
-
-
         document.getElementById("inputGraph").value = '<%out.print(json);%>';
         document.getElementById("inputGraph").style.display = "none";
         document.getElementById("graphLink").style.display = "none";
