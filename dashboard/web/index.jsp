@@ -1,50 +1,337 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<%@page import="sun.awt.SunHints.Value"%>
+<%@page import="com.sun.org.apache.xpath.internal.operations.Variable"%>
+<%@page import="sun.io.Converters"%>
+<%@page import="database.*"%>
+<%@page import="java.sql.*"%>
+<%@page import="javax.sql.*"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.sql.PreparedStatement"%>
+
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Dependency Check</title>
+<title>Index</title>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/jquery.dataTables.css" />
+    <script type="text/javascript" src="js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#tbMain').dataTable( {
+                "paging":   true,
+                "ordering": true,
+                "info":     true
+            } );
+        } );
+    </script>
 </head>
 <body>
-		<FORM name="formIndex" action="DisplayData.jsp" METHOD="POST">
-<select name="cBoxDisplay" onchange="undisableTxt(this.value)">
-            <option value="AllDep">All Dependencies</option>
-            <!-- <option value="SpecDep">Specified Dependency</option>  -->
-            <option value="AllRepo">All Repositories</option>
-            <!-- <option value="SpecRepo">Specified Repository</option> -->
-            <option value="Dep_Repo">Dependencies of a specified Repository</option>
-            <option value="Repo_Dep">Repositories of a specified Dependency</option>
-        </select>
-<br>
-<br>
-		Group Id: <INPUT TYPE="TEXT" NAME="txtGroupId" ID="txtGroupId" disabled = "true">
-		Artifact Id: <INPUT TYPE="TEXT" NAME="txtArtifactId" ID="txtArtifactId" disabled = "true">
-		Version: <INPUT TYPE="TEXT" NAME="txtVersion" ID="txtVersion" disabled = "true">
-		<!-- <INPUT TYPE="checkbox" NAME="checkSnapshots"> SNAPSHOT Versions	 -->	
-		Repository: <INPUT TYPE="TEXT" NAME="txtRepository" ID="txtRepository" disabled = "true">
-		<input type="submit" value="Submit" />		
-		</FORM>
+<%
+String groupId="";
+String artifactId="";
+if(request.getParameter("groupId")!=null){;
+	groupId=request.getParameter("groupId");	
+}
+if(request.getParameter("artifactId")!=null){;
+	artifactId=request.getParameter("artifactId");	
+}
+%>
+	<FORM name="formIndex1" action="DisplayData.jsp" METHOD="POST">
+		<select id="cBoxChoice" name="cBoxChoice" onchange="loadValues(this.value)">
+			<option selected disabled>--Select--</option>
+			<option value="Artifact">Artifacts</option>
+			<option value="Repository">Repositories</option>
+		</select> 
+		<select id="cBoxRepository" name="cBoxRepository" onchange="showButtons(this.value)" style="display: none">
+			<option selected disabled id="selectOption">--Select Repository--</option>
+		</select> 
+		<input type="submit" value="Show Dependencies" id="btnShowDependencies" name="btnShowDependencies" style="display: none" /> 
+		<input type="submit" value="Show Artifacts" id="btnShowArtifacts" name="btnShowArtifacts" style="display: none" />
 		
-<script>
-function undisableTxt(selectedValue) {
-	if(selectedValue=="Dep_Repo"){
-    document.getElementById("txtRepository").disabled = false;
-    document.getElementById("txtGroupId").disabled = true;
-	document.getElementById("txtArtifactId").disabled = true;
-	document.getElementById("txtVersion").disabled = true;
-	}else if(selectedValue=="Repo_Dep"){
-		document.getElementById("txtGroupId").disabled = false;
-		document.getElementById("txtArtifactId").disabled = false;
-		document.getElementById("txtVersion").disabled = false;
-		document.getElementById("txtRepository").disabled = true;
-	}else{
-		document.getElementById("txtRepository").disabled = true;
-		document.getElementById("txtGroupId").disabled = true;
-		document.getElementById("txtArtifactId").disabled = true;
-		document.getElementById("txtVersion").disabled = true;
-	}
-  }
+		<br><br>
+		<input type="checkbox" name="snapshotVersions" id="snapshotVersions" style="display: none" onchange="snapshotChange()" />  
+		<p id="text" style="display:none">SNAPSHOT Versions  </p>
+		<input type="checkbox" name="thirdParty" id="thirdParty" style="display: none" onchange="thirdPartyChange()"/>  
+		<p id="textThirdParty" style="display:none">Third Party Dependencies</p>
+		
+		<select id="cBoxGroup" name="cBoxGroup" onChange="showArtifactValue(this.value)" style="display: none" >
+			<option selected disabled id="selectOption">--Select GroupId--</option>
+		</select>
+		<select id="cBoxArtifact" name="cBoxArtifact" onchange="showVersion(this.value)" style="display: none">
+			<option selected disabled id="selectOption">--Select ArtifactId--</option>
+			<% if(!groupId.equals("")){			
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
+						"thilanka");
+				Statement st = con.createStatement();
+				String query = "select ArtifactID from DependencyTable where GroupId='"+groupId+"' group by ArtifactID order by ArtifactID";
+				ResultSet rs= st.executeQuery(query);
+				while(rs.next()){		
+                   %>
+ 					<option value=<%=rs.getString(1)%>><%=rs.getString(1)%></option>
+                   <%
+                }						
+			}
+			%>
+		</select >
+		<select id="cBoxVersion" name="cBoxVersion" style="display: none" onchange="displayUsgaeButton()">
+					<option selected disabled id="selectOption">--Select Version--</option>
+					<% if(!artifactId.equals("")){			
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
+						"thilanka");
+				Statement st = con.createStatement();
+				String query = "select Version from DependencyTable where ArtifactId='"+artifactId+"'";
+				ResultSet rs= st.executeQuery(query);
+				while(rs.next()){		
+                   %>
+ 					<option value=<%=rs.getString(1)%>><%=rs.getString(1)%></option>
+                   <%
+                }						
+			}
+			%>
+		</select>
+		<input type="submit" value="Show Usage" id="btnShowUsage" name="btnShowUsage" style="display: none" /> 
+		
+	</FORM>
 
-</script>
+<button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">Open Repository graph</button> 
+<button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none" onclick="openGraph('Artifact')">Open Artifact graph</button> 		
+	
+
+
+
+	<script>
+	function loadValues(value){ 
+		//when option 'Repository' is selected 
+		if(value=="Repository"){
+			document.getElementById("cBoxGroup").style="display:none";
+			document.getElementById("cBoxArtifact").style="display:none";
+			document.getElementById("cBoxVersion").style="display:none";
+			document.getElementById("btnShowUsage").style="display:none";
+
+			document.getElementById("cBoxRepository").style="display:inline";
+			var opt = document.createElement("option");
+			document.getElementById("cBoxRepository").options.add(opt);
+			opt.text="All Repositories";
+			opt.value="All";
+			<%Class.forName("com.mysql.jdbc.Driver");
+			Connection con = DriverManager.getConnection(
+					"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
+					"thilanka");
+			Statement st = con.createStatement();
+			String query = "select RepoName from RepositoryTable order by RepoName";
+			ResultSet rs = st.executeQuery(query);
+			while (rs.next()) {
+				int count = 0;
+				Statement st1 = con.createStatement();
+				String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R where R.RepoId=RD.DependRepoId and R.RepoName='"
+						+ rs.getString(1) + "' ";
+				ResultSet rs1 = st1.executeQuery(query1);
+				while (rs1.next()) {
+					count = rs1.getInt(1);
+				}
+				String depndencyNo = Integer.toString(count);
+				String optionValue = rs.getString(1).concat(
+						"(No of dependencies:" + depndencyNo + ")");%>
+				var opt = document.createElement("option");
+				document.getElementById("cBoxRepository").options.add(opt);
+				opt.text="<%out.print(optionValue);%>";
+				opt.value="<%out.print(rs.getString(1));%>";
+				document.getElementById("cBoxRepository").options.add(opt);
+			<%}%>
+			}else if(value=="Artifact"){
+				
+				document.getElementById("cBoxGroup").style="display:inline";
+				document.getElementById("cBoxRepository").style="display:none";
+				document.getElementById("btnShowDependencies").style="display:none";
+				document.getElementById("btnShowArtifacts").style="display:none";	
+				document.getElementById("btnShowRepoGraph").style="display:none";	
+				document.getElementById("btnShowArtifactGraph").style="display:none";	
+				document.getElementById("snapshotVersions").style="display:none";	
+				document.getElementById("text").style="display:none";
+				document.getElementById("thirdParty").style="display:none";	
+				document.getElementById("textThirdParty").style="display:none";
+								
+				<%
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection con2 = DriverManager.getConnection(
+						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
+						"thilanka");
+				Statement st2 = con2.createStatement();
+				String query2 = "select GroupId from DependencyTable group by GroupId order by GroupId";
+				ResultSet rs2 = st2.executeQuery(query2);
+				while(rs2.next()){
+					%>
 		
+					var opt = document.createElement("option");
+					document.getElementById("cBoxGroup").options.add(opt);
+					opt.text="<%out.print(rs2.getString(1));%>";
+					opt.value="<%out.print(rs2.getString(1));%>";
+					document.getElementById("cBoxGroup").options.add(opt);
+				<%}
+				%>
+			}
+		}
+
+		function showButtons(value) {
+			document.getElementById("btnShowDependencies").style = "display:inline";
+			document.getElementById("btnShowArtifacts").style = "display:inline";
+			document.getElementById("btnShowRepoGraph").style = "display:inline";
+			document.getElementById("btnShowArtifactGraph").style = "display:inline";
+			document.getElementById("snapshotVersions").style = "display:inline";
+			document.getElementById("text").style = "display:inline";
+			document.getElementById("thirdParty").style = "display:inline";
+			document.getElementById("textThirdParty").style = "display:inline";
+
+		}
+		
+		function showArtifactValue(value){	
+			document.getElementById("cBoxArtifact").style = "display:inline";
+			var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "Index.jsp");
+            form.setAttribute("target", "_self");
+            
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'groupId';
+            input.value = value;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+		}	
+		
+		function showVersion(value){
+			document.getElementById("cBoxVersion").style = "display:inline";
+			var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "Index.jsp");
+            form.setAttribute("target", "_self");
+            
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'groupId';
+            input.value =  document.getElementById("cBoxGroup").value;
+            form.appendChild(input);
+           
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'artifactId';
+            input.value =  document.getElementById("cBoxArtifact").value;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+		}
+		
+		function displayUsgaeButton(){
+			document.getElementById("btnShowUsage").style = "display:inline";
+		}
+		
+		function snapshotChange(){
+			if(document.getElementById('snapshotVersions').checked){
+				document.getElementById("thirdParty").disabled = true;
+			}else{
+				document.getElementById("thirdParty").disabled = false;
+			}
+		}
+		
+		function thirdPartyChange(){
+			if(document.getElementById('thirdParty').checked){
+				document.getElementById("snapshotVersions").disabled = true;
+				document.getElementById("btnShowArtifacts").disabled = true;
+				document.getElementById("btnShowArtifactGraph").disabled = true;
+				document.getElementById("btnShowRepoGraph").disabled = true;
+			}else{
+				document.getElementById("snapshotVersions").disabled = false;
+				document.getElementById("btnShowArtifacts").disabled = false;
+				document.getElementById("btnShowArtifactGraph").disabled = false;
+				document.getElementById("btnShowRepoGraph").disabled = false;
+			}
+		}
+		
+		function openGraph(value){
+		
+			var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository").selectedIndex].text;		
+			var repository=repo.substring(0, repo.indexOf('(')); 
+			
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "Graph.jsp");
+            form.setAttribute("target", "Graph.jsp");
+
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'graphType';
+            if(value=="repo"){
+            	input.value = 'repositories';
+            }else{
+            	input.value = 'artifacts';
+            }
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'repositoryName';
+			if(repo!="All Repositories"){
+				input.value =  repository;    	
+			}else{
+				input.value =  "";
+			}			
+       	 	form.appendChild(input);        
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'snapshots';
+            if(document.getElementById("snapshotVersions").checked){
+            	input.value = 'true';
+            }else{
+            	input.value = 'false';
+            }
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+		}
+	</script>
+	
+	<% if(!artifactId.equals("")){%>
+	<script>			
+	  	var element = document.getElementById('cBoxChoice');
+	    element.value = "Artifact";
+	    document.getElementById("cBoxChoice").onchange();
+	    
+	    element = document.getElementById("cBoxGroup");
+	    element.value = "<%out.print(groupId);%>";
+	    document.getElementById("cBoxArtifact").style = "display:inline";
+	    
+	    element = document.getElementById("cBoxArtifact");
+	    element.value = "<%out.print(artifactId);%>";
+	    document.getElementById("cBoxVersion").style = "display:inline";
+				  
+	</script>
+		<%} %>
+	
+	
+	<% if(!groupId.equals("")){%>
+	<script>			
+				  var element = document.getElementById('cBoxChoice');
+				    element.value = "Artifact";
+				    document.getElementById("cBoxChoice").onchange();
+				    
+				    element = document.getElementById("cBoxGroup");
+				    element.value = "<%out.print(groupId);%>";
+				    document.getElementById("cBoxArtifact").style = "display:inline";
+				</script>
+				 <%} %>
+				 
+
+	
+	
+
 </body>
 </html>
