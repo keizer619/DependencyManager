@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Index</title>
+<title>Dependency Manager</title>
     <script type="text/javascript" src="js/jquery.js"></script>
     <link type="text/css" rel="stylesheet" href="css/jquery.dataTables.css" />
     <script type="text/javascript" src="js/jquery.dataTables.js"></script>
@@ -18,6 +18,9 @@
     </script>
 </head>
 <body>
+
+<h1>Dependency Manager</h1>
+
 <%
 String groupId="";
 String artifactId="";
@@ -40,15 +43,15 @@ if(request.getParameter("artifactId")!=null){;
 		</select> 
 		<select id="cBoxRepository" name="cBoxRepository" onchange="showButtons(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select Repository--</option>
-		</select> 
-		<input type="submit" value="Show Dependencies" id="btnShowDependencies" name="btnShowDependencies" style="display: none" /> 
-		<input type="submit" value="Show Artifacts" id="btnShowArtifacts" name="btnShowArtifacts" style="display: none" />
-		
-		<br><br>
-		<input type="checkbox" name="snapshotVersions" id="snapshotVersions" style="display: none" onchange="snapshotChange()" />  
-		<p id="text" style="display:none">SNAPSHOT Versions  </p>
-		<input type="checkbox" name="thirdParty" id="thirdParty" style="display: none" onchange="thirdPartyChange()"/>  
-		<p id="textThirdParty" style="display:none">Third Party Dependencies</p>
+		</select>
+
+        <input type="checkbox" name="snapshotVersions" id="snapshotVersions" style="display: none" onchange="snapshotChange()" />
+        <p id="text" style="display:none">SNAPSHOT Versions  </p>
+        <input type="checkbox" name="thirdParty" id="thirdParty" style="display: none" onchange="thirdPartyChange()"/>
+        <p id="textThirdParty" style="display:none">Third Party Dependencies</p>
+
+
+
 		
 		<select id="cBoxGroup" name="cBoxGroup" onChange="showArtifactValue(this.value)" style="display: none" >
 			<option selected disabled id="selectOption">--Select GroupId--</option>
@@ -81,12 +84,16 @@ if(request.getParameter("artifactId")!=null){;
 			}
 			%>
 		</select>
-		<input type="submit" value="Show Usage" id="btnShowUsage" name="btnShowUsage" style="display: none" /> 
+
+        <br/><br/>
+        <input type="submit" value="Show Dependencies" id="btnShowDependencies" name="btnShowDependencies" style="display: none" />
+        <input type="submit" value="Show Artifacts" id="btnShowArtifacts" name="btnShowArtifacts" style="display: none" />
+        <input type="submit" value="Show Usage" id="btnShowUsage" name="btnShowUsage" style="display: none" />
 		
 	</FORM>
 
-<button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">Open Repository graph</button> 
-<button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none" onclick="openGraph('Artifact')">Open Artifact graph</button> 		
+<button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">Show Repository graph</button>
+<button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none" onclick="openGraph('Artifact')">Show Artifact graph</button>
 	
 
 
@@ -223,15 +230,16 @@ if(request.getParameter("artifactId")!=null){;
 		
 		function thirdPartyChange(){
 			if(document.getElementById('thirdParty').checked){
-				document.getElementById("snapshotVersions").disabled = true;
-				document.getElementById("btnShowArtifacts").disabled = true;
-				document.getElementById("btnShowArtifactGraph").disabled = true;
-				document.getElementById("btnShowRepoGraph").disabled = true;
+                document.getElementById("snapshotVersions").style = "display:none";
+                document.getElementById("btnShowArtifacts").style = "display:none";
+                document.getElementById("btnShowArtifactGraph").style = "display:none";
+                document.getElementById("btnShowRepoGraph").style = "display:none";
+
 			}else{
-				document.getElementById("snapshotVersions").disabled = false;
-				document.getElementById("btnShowArtifacts").disabled = false;
-				document.getElementById("btnShowArtifactGraph").disabled = false;
-				document.getElementById("btnShowRepoGraph").disabled = false;
+                document.getElementById("snapshotVersions").style = "display:inline";
+                document.getElementById("btnShowArtifacts").style = "display:inline";
+                document.getElementById("btnShowArtifactGraph").style = "display:inline";
+                document.getElementById("btnShowRepoGraph").style = "display:inline";
 			}
 		}
 		
@@ -242,8 +250,8 @@ if(request.getParameter("artifactId")!=null){;
 			
             var form = document.createElement("form");
             form.setAttribute("method", "post");
-            form.setAttribute("action", "Graph.jsp");
-            form.setAttribute("target", "Graph.jsp");
+            form.setAttribute("action", "graph.jsp");
+            form.setAttribute("target", "graph.jsp");
 
             var input = document.createElement('input');
             input.type = 'hidden';
