@@ -2,13 +2,7 @@
 <%@page import="java.sql.Connection"%>
 <%!
     public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
-
         try {
-
-            System.out.println(graphType);
-            System.out.println(repositoryName);
-            System.out.println(isSnapshots);
-
             Class.forName("com.mysql.jdbc.Driver");
             Connection con = DriverManager.getConnection(
                     "jdbc:mysql://localhost:3306/DependencyManager", "root",
@@ -16,7 +10,6 @@
             Statement st = con.createStatement();
 
             String query;
-
 
             if (graphType.equals("artifacts")) {
                 query = "SELECT DISTINCT r.RepoName As DependRepo , " +
@@ -129,19 +122,10 @@
 
 <body onLoad="tryDraw();">
 
-
 <%
-
-
-
-
-
     String json = "digraph {";
     json += loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),request.getParameter("snapshots"), "");
     json += "}";
-
-
-
 %>
 
 <form>
@@ -152,8 +136,6 @@
         document.getElementById("inputGraph").style.display = "none";
         document.getElementById("graphLink").style.display = "none";
     </script>
-
-
 </form>
 
 <svg width=100% height=600>
@@ -161,8 +143,6 @@
 </svg>
 
 <script type="text/javascript">
-    // Input related code goes here
-
     function graphToURL() {
         var elems = [window.location.protocol, '//',
             window.location.host,
