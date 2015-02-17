@@ -100,12 +100,23 @@ public class VersionManager {
 						insertDependencySt.setInt(5, sourceRepoId);
 						insertDependencySt.execute();
 					}
+                    else {
+
+                        String updateDependencyQuery="UPDATE DependencyTable SET LatestVersion = ? WHERE GroupId = ? AND ArtifactId = ? AND Version = ?";
+                        PreparedStatement updateDependencySt = connect.prepareStatement(updateDependencyQuery);
+                        updateDependencySt.setString(1, uniqueDependencies.get(i).getLatestVersion());
+                        updateDependencySt.setString(2, uniqueDependencies.get(i).getGroupId());
+                        updateDependencySt.setString(3, uniqueDependencies.get(i).getArtifactId());
+                        updateDependencySt.setString(4, uniqueDependencies.get(i).getVersion());
+                        updateDependencySt.execute();
+                    }
+
 
 
 						}
                   catch (Exception ex)
                   {
-
+                      logger.error("Exception occurred : " + ex.getMessage());
                   }
 
                 //insert into RepositoryDependencyTable
@@ -120,7 +131,7 @@ public class VersionManager {
                                         +uniqueDependencies.get(i).getGroupId()
                                         +"' AND ArtifactId='"+uniqueDependencies.get(i).getArtifactId()
                                         +"' AND Version='"+uniqueDependencies.get(i).getVersion()
-                                        +"' AND SourceRepoId='"+sourceRepoId2+"'");
+                                        +"' AND DependRepoId='"+sourceRepoId2+"'");
 
                         if(!compareRepoDependency.next()){
                             String insertRepoDependencyQuery="INSERT INTO RepositoryDependencyTable values(?,?,?,?)";
