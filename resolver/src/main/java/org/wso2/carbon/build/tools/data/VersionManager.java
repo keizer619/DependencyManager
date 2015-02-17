@@ -49,6 +49,22 @@ public class VersionManager {
 			connect = DriverManager.getConnection(Constants.DATABASE_CONNECTION, Constants.MYSQL_USERNAME,
                     Constants.MYSQL_PASSWORD);
 			Statement stmt = connect.createStatement();
+			
+			if(Constants.DELETE_DATABASE==true){
+				String deleteRepositoryDependency="DELETE FROM RepositoryDependencyTable";
+				PreparedStatement deleteRepoDepPS = connect.prepareStatement(deleteRepositoryDependency);
+				deleteRepoDepPS.execute();
+				String deleteDependency="DELETE FROM DependencyTable";
+				PreparedStatement deleteDependencyPS = connect.prepareStatement(deleteDependency);
+				deleteDependencyPS.execute();
+				String deleteRepository="DELETE FROM RepositoryTable";
+				PreparedStatement deleteRepositoryPS = connect.prepareStatement(deleteRepository);
+				deleteRepositoryPS.execute();
+				String alterRepository="ALTER TABLE RepositoryTable AUTO_INCREMENT = 1";
+				PreparedStatement alterRepositoryPS = connect.prepareStatement(alterRepository);
+				alterRepositoryPS.execute();
+				System.out.println("deleted");
+			}
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){
 
