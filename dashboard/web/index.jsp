@@ -21,8 +21,8 @@
 <%
 String groupId="";
 String artifactId="";
-String userName="nishali";
-String password="thilanka";
+String userName="root";
+String password="Root@wso2";
 Class.forName("com.mysql.jdbc.Driver");
 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager", userName,password);
 if(request.getParameter("groupId")!=null){;
@@ -173,7 +173,7 @@ if(request.getParameter("artifactId")!=null){;
 			document.getElementById("cBoxArtifact").style = "display:inline";
 			var form = document.createElement("form");
             form.setAttribute("method", "post");
-            form.setAttribute("action", "Index.jsp");
+            form.setAttribute("action", "index.jsp");
             form.setAttribute("target", "_self");
             
             var input = document.createElement('input');
@@ -190,7 +190,7 @@ if(request.getParameter("artifactId")!=null){;
 			document.getElementById("cBoxVersion").style = "display:inline";
 			var form = document.createElement("form");
             form.setAttribute("method", "post");
-            form.setAttribute("action", "Index.jsp");
+            form.setAttribute("action", "index.jsp");
             form.setAttribute("target", "_self");
             
             var input = document.createElement('input');
