@@ -1,6 +1,11 @@
 <%@page import="java.sql.*"%>
 <%@page import="java.sql.Connection"%>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.HashMap" %>
 <%!
+    public static int MAX_RECUSIVE_DEPTH = 2;
+    private static HashMap<String, ArrayList<String>> nodes;
+
     public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -28,32 +33,70 @@
                         "WHERE r.RepoName != rr.RepoName";
             }
 
-            if (!repositoryName.equals("")) {
-                query += " AND r.RepoName='" + repositoryName + "'";
-            }
+          //  if (!repositoryName.equals("")) {
+           //     query += " AND r.RepoName='" + repositoryName + "'";
+           // }
 
             if (isSnapshots.equals("true")) {
                 query += " AND d.Version LIKE '%snapshot%'";
             }
-            System.out.println(query);
+
             ResultSet rs = st.executeQuery(query);
 
+             nodes = new HashMap<String, ArrayList<String>>();
 
             while (rs.next()) {
 
-                json += '"' + rs.getString(1) + '"' + "->" + '"'
-                        + rs.getString(2) + '"' + ";";
-              //   json += loadJson( graphType, rs.getString(2), isSnapshots, json);
+                if (!repositoryName.equals("")){
+                    ArrayList<String> dep =  nodes.get(rs.getString(1));
+
+                    if (dep == null){
+                        dep = new ArrayList<String>();
+                    }
+
+                    dep.add(rs.getString(2));
+
+                    nodes.put(rs.getString(1), dep);
+                }
+                else {
+                    json += '"' + rs.getString(1) + '"' + "->" + '"'
+                            + rs.getString(2) + '"' + ";";
+
+                }
             }
 
             st.close();
             con.close();
+
+            if (!repositoryName.equals("")) {
+                json += constructJson(repositoryName, 0);
+            }
+
+            System.out.println(json);
 
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
 
         return json;
+    }
+
+    private String constructJson(String repoName, int count) {
+
+        String json = "";
+        ArrayList<String> dep =nodes.get(repoName);
+
+        if (dep != null){
+            for (int i = 0; i  < dep.size(); i++){
+                    json += '"' + repoName + '"' + "->" + '"'
+                            + dep.get(i) + '"' + ";";
+                       if ( count < MAX_RECUSIVE_DEPTH) {
+                            json += constructJson(dep.get(i), count + 1);
+                        }
+            }
+        }
+
+        return  json;
     }
 %>
 
@@ -123,9 +166,8 @@
 <body onLoad="tryDraw();">
 
 <%
-    String json = "digraph {";
-    json += loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),request.getParameter("snapshots"), "");
-    json += "}";
+    String json = "digraph {" + loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),request.getParameter("snapshots"), "") + "}";
+
 %>
 
 <form>
