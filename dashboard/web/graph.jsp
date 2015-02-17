@@ -1,5 +1,69 @@
 <%@page import="java.sql.*"%>
 <%@page import="java.sql.Connection"%>
+<%!
+    public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
+
+        try {
+
+            System.out.println(graphType);
+            System.out.println(repositoryName);
+            System.out.println(isSnapshots);
+
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/DependencyManager", "root",
+                    "Root@wso2");
+            Statement st = con.createStatement();
+
+            String query;
+
+
+            if (graphType.equals("artifacts")) {
+                query = "SELECT DISTINCT r.RepoName As DependRepo , " +
+                        "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
+                        " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                        "WHERE r.RepoName != rr.RepoName";
+            } else {
+                query = "SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
+                        "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                        "WHERE r.RepoName != rr.RepoName";
+            }
+
+            if (!repositoryName.equals("")) {
+                query += " AND r.RepoName='" + repositoryName + "'";
+            }
+
+            if (isSnapshots.equals("true")) {
+                query += " AND d.Version LIKE '%snapshot%'";
+            }
+            System.out.println(query);
+            ResultSet rs = st.executeQuery(query);
+
+
+            while (rs.next()) {
+
+                json += '"' + rs.getString(1) + '"' + "->" + '"'
+                        + rs.getString(2) + '"' + ";";
+              //   json += loadJson( graphType, rs.getString(2), isSnapshots, json);
+            }
+
+            st.close();
+            con.close();
+
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return json;
+    }
+%>
+
 <html>
 <head>
 
@@ -12,52 +76,52 @@
 
     <style type="text/css">
         svg {
-          border: 1px solid #999;
-          overflow: hidden;
+            border: 1px solid #999;
+            overflow: hidden;
         }
 
         .node {
-          white-space: nowrap;
+            white-space: nowrap;
         }
 
         .node rect,
         .node circle,
         .node ellipse {
-          stroke: #333;
-          fill: #fff;
-          stroke-width: 1.5px;
+            stroke: #333;
+            fill: #fff;
+            stroke-width: 1.5px;
         }
 
         .cluster rect {
-          stroke: #333;
-          fill: #000;
-          fill-opacity: 0.1;
-          stroke-width: 1.5px;
+            stroke: #333;
+            fill: #000;
+            fill-opacity: 0.1;
+            stroke-width: 1.5px;
         }
 
         .edgePath path.path {
-          stroke: #333;
-          stroke-width: 1.5px;
-          fill: none;
+            stroke: #333;
+            stroke-width: 1.5px;
+            fill: none;
         }
     </style>
 
     <style>
         h1, h2 {
-          color: #333;
+            color: #333;
         }
 
         textarea {
-          width: 800px;
+            width: 800px;
         }
 
         label {
-          margin-top: 1em;
-          display: block;
+            margin-top: 1em;
+            display: block;
         }
 
         .error {
-          color: red;
+            color: red;
         }
     </style>
 </head>
@@ -67,87 +131,52 @@
 
 
 <%
-    String query;
-    Class.forName("com.mysql.jdbc.Driver");
-    Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/DependencyManager", "root",
-            "Root@wso2");
-    Statement st = con.createStatement();
+
+
+
+
+
     String json = "digraph {";
-
-    if (request.getParameter("graphType") != null && request.getParameter("graphType").equals("artifacts")) {
-        query="SELECT DISTINCT r.RepoName As DependRepo , " +
-                "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
-                " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
-                "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
-                "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
-                "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
-                "WHERE r.RepoName != rr.RepoName";
-    }
-    else {
-        query="SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
-                "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
-                "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
-                "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
-                "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
-                "WHERE r.RepoName != rr.RepoName";
-    }
-
-    if (request.getParameter("repositoryName") != null){
-        query += " AND r.RepoName='"+request.getParameter("repositoryName")+"'";
-    }
-
-    if (request.getParameter("snapshots") != null && request.getParameter("snapshots").equals("true")){
-        query += "AND d.Version LIKE '%snapshot%'";
-    }
-
-
-    ResultSet rs = st.executeQuery(query);
-
-
-    while (rs.next()) {
-
-        json += '"' +rs.getString(1) +'"' + "->" + '"'
-                + rs.getString(2) + '"' + ";";
-
-    }
-
+    json += loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),request.getParameter("snapshots"), "");
     json += "}";
+
+
+
 %>
 
-    <form>
-      <textarea id="inputGraph" rows="5" style="display: block" onKeyUp="tryDraw();"/></textarea>
+<form>
+    <textarea id="inputGraph" rows="5" style="display: block" onKeyUp="tryDraw();"/></textarea>
     <a id="graphLink">Link for this graph</a>
-       <script type="text/javascript">
+    <script type="text/javascript">
         document.getElementById("inputGraph").value = '<%out.print(json);%>';
         document.getElementById("inputGraph").style.display = "none";
         document.getElementById("graphLink").style.display = "none";
-      </script>
+    </script>
 
 
-    </form>
+</form>
 
-    <svg width=100% height=600>
-      <g/>
-    </svg>
+<svg width=100% height=600>
+    <g/>
+</svg>
 
-    <script type="text/javascript">
+<script type="text/javascript">
     // Input related code goes here
 
     function graphToURL() {
-      var elems = [window.location.protocol, '//',
-                   window.location.host,
-                   window.location.pathname,
-                   '?'];
+        var elems = [window.location.protocol, '//',
+            window.location.host,
+            window.location.pathname,
+            '?'];
 
-      var queryParams = [];
-      if (debugAlignment) {
-        queryParams.push('alignment=' + debugAlignment);
-      }
-      queryParams.push('graph=' + encodeURIComponent(inputGraph.value));
-      elems.push(queryParams.join('&'));
+        var queryParams = [];
+        if (debugAlignment) {
+            queryParams.push('alignment=' + debugAlignment);
+        }
+        queryParams.push('graph=' + encodeURIComponent(inputGraph.value));
+        elems.push(queryParams.join('&'));
 
-      return elems.join('');
+        return elems.join('');
     }
 
     var inputGraph = document.querySelector("#inputGraph");
@@ -159,7 +188,7 @@
     var graphRE = /[?&]graph=([^&]+)/;
     var graphMatch = window.location.search.match(graphRE);
     if (graphMatch) {
-      inputGraph.value = decodeURIComponent(graphMatch[1]);
+        inputGraph.value = decodeURIComponent(graphMatch[1]);
     }
     var debugAlignmentRE = /[?&]alignment=([^&]+)/;
     var debugAlignmentMatch = window.location.search.match(debugAlignmentRE);
@@ -168,47 +197,47 @@
 
     // Set up zoom support
     var svg = d3.select("svg"),
-        inner = d3.select("svg g"),
-        zoom = d3.behavior.zoom().on("zoom", function() {
-          inner.attr("transform", "translate(" + d3.event.translate + ")" +
-                                      "scale(" + d3.event.scale + ")");
-        });
+            inner = d3.select("svg g"),
+            zoom = d3.behavior.zoom().on("zoom", function() {
+                inner.attr("transform", "translate(" + d3.event.translate + ")" +
+                        "scale(" + d3.event.scale + ")");
+            });
     svg.call(zoom);
 
     // Create and configure the renderer
     var render = dagreD3.render();
 
     function tryDraw() {
-      var g;
-      if (oldInputGraphValue !== inputGraph.value) {
-        inputGraph.setAttribute("class", "");
-        oldInputGraphValue = inputGraph.value;
-        try {
-          g = graphlibDot.read(inputGraph.value);
-        } catch (e) {
-          inputGraph.setAttribute("class", "error");
-          throw e;
+        var g;
+        if (oldInputGraphValue !== inputGraph.value) {
+            inputGraph.setAttribute("class", "");
+            oldInputGraphValue = inputGraph.value;
+            try {
+                g = graphlibDot.read(inputGraph.value);
+            } catch (e) {
+                inputGraph.setAttribute("class", "error");
+                throw e;
+            }
+
+            // Save link to new graph
+            graphLink.attr("href", graphToURL());
+
+            // Set margins, if not present
+            if (!g.graph().hasOwnProperty("marginx") &&
+                    !g.graph().hasOwnProperty("marginy")) {
+                g.graph().marginx = 20;
+                g.graph().marginy = 20;
+            }
+
+            g.graph().transition = function(selection) {
+                return selection.transition().duration(500);
+            };
+
+            // Render the graph into svg g
+            d3.select("svg g").call(render, g);
         }
-
-        // Save link to new graph
-        graphLink.attr("href", graphToURL());
-
-        // Set margins, if not present
-        if (!g.graph().hasOwnProperty("marginx") &&
-            !g.graph().hasOwnProperty("marginy")) {
-          g.graph().marginx = 20;
-          g.graph().marginy = 20;
-        }
-
-        g.graph().transition = function(selection) {
-          return selection.transition().duration(500);
-        };
-
-        // Render the graph into svg g
-        d3.select("svg g").call(render, g);
-      }
     }
-    </script>
+</script>
 
 </body>
 
