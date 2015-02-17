@@ -1,11 +1,4 @@
-<%@page import="sun.awt.SunHints.Value"%>
-<%@page import="com.sun.org.apache.xpath.internal.operations.Variable"%>
-<%@page import="sun.io.Converters"%>
-<%@page import="database.*"%>
 <%@page import="java.sql.*"%>
-<%@page import="javax.sql.*"%>
-<%@page import="java.sql.Connection"%>
-<%@page import="java.sql.PreparedStatement"%>
 
 <html>
 <head>
@@ -28,6 +21,10 @@
 <%
 String groupId="";
 String artifactId="";
+String userName="nishali";
+String password="thilanka";
+Class.forName("com.mysql.jdbc.Driver");
+Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager", userName,password);
 if(request.getParameter("groupId")!=null){;
 	groupId=request.getParameter("groupId");	
 }
@@ -59,10 +56,6 @@ if(request.getParameter("artifactId")!=null){;
 		<select id="cBoxArtifact" name="cBoxArtifact" onchange="showVersion(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select ArtifactId--</option>
 			<% if(!groupId.equals("")){			
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con = DriverManager.getConnection(
-						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
-						"thilanka");
 				Statement st = con.createStatement();
 				String query = "select ArtifactID from DependencyTable where GroupId='"+groupId+"' group by ArtifactID order by ArtifactID";
 				ResultSet rs= st.executeQuery(query);
@@ -77,10 +70,6 @@ if(request.getParameter("artifactId")!=null){;
 		<select id="cBoxVersion" name="cBoxVersion" style="display: none" onchange="displayUsgaeButton()">
 					<option selected disabled id="selectOption">--Select Version--</option>
 					<% if(!artifactId.equals("")){			
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con = DriverManager.getConnection(
-						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
-						"thilanka");
 				Statement st = con.createStatement();
 				String query = "select Version from DependencyTable where ArtifactId='"+artifactId+"'";
 				ResultSet rs= st.executeQuery(query);
@@ -116,10 +105,7 @@ if(request.getParameter("artifactId")!=null){;
 			document.getElementById("cBoxRepository").options.add(opt);
 			opt.text="All Repositories";
 			opt.value="All";
-			<%Class.forName("com.mysql.jdbc.Driver");
-			Connection con = DriverManager.getConnection(
-					"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
-					"thilanka");
+			<%
 			Statement st = con.createStatement();
 			String query = "select RepoName from RepositoryTable order by RepoName";
 			ResultSet rs = st.executeQuery(query);
@@ -155,11 +141,7 @@ if(request.getParameter("artifactId")!=null){;
 				document.getElementById("textThirdParty").style="display:none";
 								
 				<%
-				Class.forName("com.mysql.jdbc.Driver");
-				Connection con2 = DriverManager.getConnection(
-						"jdbc:mysql://localhost:3306/DependencyManager", "nishali",
-						"thilanka");
-				Statement st2 = con2.createStatement();
+				Statement st2 = con.createStatement();
 				String query2 = "select GroupId from DependencyTable group by GroupId order by GroupId";
 				ResultSet rs2 = st2.executeQuery(query2);
 				while(rs2.next()){
