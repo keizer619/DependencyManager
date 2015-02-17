@@ -20,8 +20,8 @@
 <body>
 
 	<%
-		String userName="nishali";
-		String password="thilanka";
+		String userName="root";
+		String password="Root@wso2";
 		Class.forName("com.mysql.jdbc.Driver");
 		Connection con1 = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager", userName,password);
 	%>
