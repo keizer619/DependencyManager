@@ -4,6 +4,7 @@
 <head>
 <title>Display Data</title>
     <script type="text/javascript" src="js/jquery.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/main.css" />
     <link type="text/css" rel="stylesheet" href="css/jquery.dataTables.css" />
     <script type="text/javascript" src="js/jquery.dataTables.js"></script>
     <script type="text/javascript">

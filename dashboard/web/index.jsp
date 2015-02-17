@@ -5,6 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Dependency Manager</title>
     <script type="text/javascript" src="js/jquery.js"></script>
+    <link type="text/css" rel="stylesheet" href="css/main.css" />
     <link type="text/css" rel="stylesheet" href="css/jquery.dataTables.css" />
     <script type="text/javascript" src="js/jquery.dataTables.js"></script>
     <script type="text/javascript">
@@ -94,7 +95,7 @@ if(request.getParameter("artifactId")!=null){;
 
 <button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">Show Repository graph</button>
 <button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none" onclick="openGraph('Artifact')">Show Artifact graph</button>
-	
+
 
 
 
@@ -230,13 +231,13 @@ if(request.getParameter("artifactId")!=null){;
 		
 		function thirdPartyChange(){
 			if(document.getElementById('thirdParty').checked){
-                document.getElementById("snapshotVersions").style = "display:none";
+                document.getElementById("snapshotVersions").disabled = true;
                 document.getElementById("btnShowArtifacts").style = "display:none";
                 document.getElementById("btnShowArtifactGraph").style = "display:none";
                 document.getElementById("btnShowRepoGraph").style = "display:none";
 
 			}else{
-                document.getElementById("snapshotVersions").style = "display:inline";
+                document.getElementById("snapshotVersions").disabled = false;
                 document.getElementById("btnShowArtifacts").style = "display:inline";
                 document.getElementById("btnShowArtifactGraph").style = "display:inline";
                 document.getElementById("btnShowRepoGraph").style = "display:inline";

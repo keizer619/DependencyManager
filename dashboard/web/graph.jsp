@@ -62,7 +62,7 @@
 
     <meta charset="utf-8">
     <title>Dependency Graph</title>
-
+    <link type="text/css" rel="stylesheet" href="css/main.css" />
     <script type="text/javascript" src="js/d3.v3.js"></script>
     <script type="text/javascript" src="js/graphlib-dot.js"></script>
     <script type="text/javascript" src="js/dagre-d3.js"></script>
