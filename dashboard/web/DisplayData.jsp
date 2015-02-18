@@ -23,7 +23,8 @@
 		String userName="root";
 		String password="Root@wso2";
 		Class.forName("com.mysql.jdbc.Driver");
-		Connection con1 = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager", userName,password);
+		Connection con1 = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager",
+                                                        userName, password);
 	%>
 
 	<%
@@ -50,14 +51,38 @@
 			Statement st1 = con1.createStatement();
 			String query1="";
 			if (repository.equalsIgnoreCase("All")) {
-				query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName FROM (DependencyManager.RepositoryTable R join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID";
+				query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName " +
+                        "FROM (DependencyManager.RepositoryTable R " +
+                        "join DependencyManager.RepositoryDependencyTable RD " +
+                        "on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D " +
+                        "on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version " +
+                        "join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID";
 				if(thirdParty!=null){
-					query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName FROM (DependencyManager.RepositoryTable R join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID WHERE D.SourceRepoId='"+repoId+"'";
+					query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName " +
+                            "FROM (DependencyManager.RepositoryTable R " +
+                            "" +
+                            "join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) " +
+                            "join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId " +
+                            "and RD.GroupId = D.GroupId and RD.Version = D.Version " +
+                            "join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID " +
+                            "WHERE D.SourceRepoId='"+repoId+"'";
 				}
 			} else {
-				query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName FROM (DependencyManager.RepositoryTable R join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID WHERE R.RepoName = '"+repository+"'";
+				query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName " +
+                        "FROM (DependencyManager.RepositoryTable R " +
+                        "join DependencyManager.RepositoryDependencyTable RD " +
+                        "on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D " +
+                        "on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version " +
+                        "join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID " +
+                        "WHERE R.RepoName = '"+repository+"'";
 				if(thirdParty!=null){
-					query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName FROM (DependencyManager.RepositoryTable R join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID WHERE R.RepoName = '"+repository+"' and D.SourceRepoId='"+repoId+"'";
+					query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion,RR.RepoName, R.RepoName " +
+                            "FROM (DependencyManager.RepositoryTable R " +
+                            "join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) " +
+                            "join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId " +
+                            "and RD.GroupId = D.GroupId and RD.Version = D.Version" +
+                            " join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID " +
+                            "WHERE R.RepoName = '"+repository+"' and D.SourceRepoId='"+repoId+"'";
 				}
 			}
 			
@@ -97,9 +122,11 @@
 			Statement st1 = con1.createStatement();
 			String query1="";
 			if (repository.equalsIgnoreCase("All")) {
-				query1 = "select D.GroupId,D.ArtifactId,D.Version,D.LatestVersion,R.RepoName,'' from DependencyTable D, RepositoryTable R where D.SourceRepoId=R.RepoId ";
+				query1 = "select D.GroupId,D.ArtifactId,D.Version,D.LatestVersion,R.RepoName,'' " +
+                        "from DependencyTable D, RepositoryTable R where D.SourceRepoId=R.RepoId ";
 			} else {
-				query1 = "select D.GroupId,D.ArtifactId,D.Version,D.LatestVersion,R.RepoName,'' from DependencyTable D, RepositoryTable R where R.RepoName='"
+				query1 = "select D.GroupId,D.ArtifactId,D.Version,D.LatestVersion,R.RepoName,'' " +
+                        "from DependencyTable D, RepositoryTable R where R.RepoName='"
 						+ repository
 						+ "' and R.RepoId=D.SourceRepoId";
 			}
@@ -138,8 +165,16 @@
 			String artifactId1=request.getParameter("cBoxArtifact");
 			String version1=request.getParameter("cBoxVersion");
 			Statement st1 = con1.createStatement();
-			//String query1="select RD.GroupId,RD.ArtifactId,RD.Version,D.LatestVersion,'',R.RepoName from DependencyTable D,RepositoryTable R,RepositoryDependencyTable RD where D.GroupId='"+groupId1+"' and D.ArtifactId='"+artifactId1+"' and D.Version='"+version1+"' and RD.DependRepoId=R.RepoId and RD.GroupId=D.GroupId and RD.ArtifactId=D.ArtifactID and RD.Version=D.Version";
-			String query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion, RR.RepoName, R.RepoName FROM (DependencyManager.RepositoryTable R join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId and RD.GroupId = D.GroupId and RD.Version = D.Version join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID where RD.GroupId='"+groupId1+"' and RD.ArtifactId='"+artifactId1+"' and RD.Version='"+version1+"' and RD.DependRepoId=R.RepoId and RD.GroupId=D.GroupId and RD.ArtifactId=D.ArtifactID and RD.Version=D.Version";
+
+			String query1="SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion, RR.RepoName, R.RepoName " +
+                    "FROM (DependencyManager.RepositoryTable R " +
+                    "join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) " +
+                    "join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId " +
+                    "and RD.GroupId = D.GroupId and RD.Version = D.Version " +
+                    "join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID" +
+                    " where RD.GroupId='"+groupId1+"' and RD.ArtifactId='"+artifactId1+"' " +
+                    "and RD.Version='"+version1+"' and RD.DependRepoId=R.RepoId " +
+                    "and RD.GroupId=D.GroupId and RD.ArtifactId=D.ArtifactID and RD.Version=D.Version";
 			ResultSet rs1 = st1.executeQuery(query1);
 			out.println("<table id='tbMain' class='display' cellspacing='0' width='100%'>");
 			out.println("<thead>");

@@ -3,7 +3,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.HashMap" %>
 <%!
-    public static int MAX_RECUSIVE_DEPTH = 2;
+    public static int MAX_RECUSION_DEPTH = 2;
     private static HashMap<String, ArrayList<String>> nodes;
 
     public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
@@ -17,25 +17,21 @@
             String query;
 
             if (graphType.equals("artifacts")) {
-                query = "SELECT DISTINCT r.RepoName As DependRepo , " +
-                        "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
-                        " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
-                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
-                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
-                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
-                        "WHERE r.RepoName != rr.RepoName";
+            query = "SELECT DISTINCT r.RepoName As DependRepo , " +
+                    "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
+                    " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                    "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                    "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                    "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                    "WHERE r.RepoName != rr.RepoName";
             } else {
-                query = "SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
-                        "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
-                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
-                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
-                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
-                        "WHERE r.RepoName != rr.RepoName";
+            query = "SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
+                    "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                    "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                    "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                    "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                    "WHERE r.RepoName != rr.RepoName";
             }
-
-          //  if (!repositoryName.equals("")) {
-           //     query += " AND r.RepoName='" + repositoryName + "'";
-           // }
 
             if (isSnapshots.equals("true")) {
                 query += " AND d.Version LIKE '%snapshot%'";
@@ -90,7 +86,7 @@
             for (int i = 0; i  < dep.size(); i++){
                     json += '"' + repoName + '"' + "->" + '"'
                             + dep.get(i) + '"' + ";";
-                       if ( count < MAX_RECUSIVE_DEPTH) {
+                       if ( count < MAX_RECUSION_DEPTH) {
                             json += constructJson(dep.get(i), count + 1);
                         }
             }
@@ -166,7 +162,8 @@
 <body onLoad="tryDraw();">
 
 <%
-    String json = "digraph {" + loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),request.getParameter("snapshots"), "") + "}";
+    String json = "digraph {" + loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),
+            request.getParameter("snapshots"), "") + "}";
 
 %>
 

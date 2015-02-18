@@ -46,7 +46,8 @@ if(request.getParameter("artifactId")!=null){;
 			<option selected disabled id="selectOption">--Select Repository--</option>
 		</select>
 
-        <input type="checkbox" name="snapshotVersions" id="snapshotVersions" style="display: none" onchange="snapshotChange()" />
+        <input type="checkbox" name="snapshotVersions" id="snapshotVersions"
+               style="display: none" onchange="snapshotChange()" />
         <p id="text" style="display:none">SNAPSHOT Versions  </p>
         <input type="checkbox" name="thirdParty" id="thirdParty" style="display: none" onchange="thirdPartyChange()"/>
         <p id="textThirdParty" style="display:none">Third Party Dependencies</p>
@@ -61,7 +62,8 @@ if(request.getParameter("artifactId")!=null){;
 			<option selected disabled id="selectOption">--Select ArtifactId--</option>
 			<% if(!groupId.equals("")){			
 				Statement st = con.createStatement();
-				String query = "select ArtifactID from DependencyTable where GroupId='"+groupId+"' group by ArtifactID order by ArtifactID";
+				String query = "select ArtifactID from DependencyTable where GroupId='"+groupId+"' " +
+                        "group by ArtifactID order by ArtifactID";
 				ResultSet rs= st.executeQuery(query);
 				while(rs.next()){		
                    %>
@@ -87,14 +89,19 @@ if(request.getParameter("artifactId")!=null){;
 		</select>
 
         <br/><br/>
-        <input type="submit" value="Show Dependencies" id="btnShowDependencies" name="btnShowDependencies" style="display: none" />
-        <input type="submit" value="Show Artifacts" id="btnShowArtifacts" name="btnShowArtifacts" style="display: none" />
+        <input type="submit" value="Show Dependencies" id="btnShowDependencies" name="btnShowDependencies"
+               style="display: none" />
+        <input type="submit" value="Show Artifacts" id="btnShowArtifacts" name="btnShowArtifacts"
+               style="display: none" />
         <input type="submit" value="Show Usage" id="btnShowUsage" name="btnShowUsage" style="display: none" />
 		
 	</FORM>
 
-<button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">Show Repository graph</button>
-<button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none" onclick="openGraph('Artifact')">Show Artifact graph</button>
+<button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">
+    Show Repository graph
+</button>
+<button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none"
+        onclick="openGraph('Artifact')">Show Artifact graph</button>
 
 
 
@@ -120,8 +127,8 @@ if(request.getParameter("artifactId")!=null){;
 			while (rs.next()) {
 				int count = 0;
 				Statement st1 = con.createStatement();
-				String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R where R.RepoId=RD.DependRepoId and R.RepoName='"
-						+ rs.getString(1) + "' ";
+				String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R" +
+				 " where R.RepoId=RD.DependRepoId and R.RepoName='"+ rs.getString(1) + "' ";
 				ResultSet rs1 = st1.executeQuery(query1);
 				while (rs1.next()) {
 					count = rs1.getInt(1);
@@ -246,7 +253,8 @@ if(request.getParameter("artifactId")!=null){;
 		
 		function openGraph(value){
 		
-			var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository").selectedIndex].text;		
+			var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository")
+                                    .selectedIndex].text;
 			var repository=repo.substring(0, repo.indexOf('(')); 
 			
             var form = document.createElement("form");
