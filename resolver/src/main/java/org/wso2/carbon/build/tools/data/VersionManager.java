@@ -124,9 +124,9 @@ public class VersionManager {
                         String updateDependencyQuery="UPDATE DependencyTable SET LatestVersion = ? WHERE GroupId = ? AND ArtifactId = ? AND Version = ?";
                         PreparedStatement updateDependencySt = connect.prepareStatement(updateDependencyQuery);
                         if(uniqueDependencies.get(i).getLatestVersion()!=null){
-                        	updateDependencySt.setString(4, uniqueDependencies.get(i).getLatestVersion());
+                        	updateDependencySt.setString(1, uniqueDependencies.get(i).getLatestVersion());
 						}else{
-							updateDependencySt.setString(4,"NA");
+							updateDependencySt.setString(1,"NA");
 						}
                         updateDependencySt.setString(2, uniqueDependencies.get(i).getGroupId());
                         updateDependencySt.setString(3, uniqueDependencies.get(i).getArtifactId());
