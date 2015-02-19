@@ -1,4 +1,102 @@
 <%@page import="java.sql.*"%>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.Map" %>
+
+<%!
+    public static int MAX_RECUSION_DEPTH = 2;
+    private static HashMap<String, ArrayList<String>> nodes;
+
+    public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection con = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/DependencyManager", "root",
+                    "Root@wso2");
+            Statement st = con.createStatement();
+
+            String query;
+
+            if (graphType.equals("artifacts")) {
+                query = "SELECT DISTINCT r.RepoName As DependRepo , " +
+                        "CONCAT(rr.RepoName,' (',d.GroupId,':',d.ArtifactId,':',d.Version,')') AS SourceArtifact" +
+                        " FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                        "WHERE r.RepoName != rr.RepoName";
+            } else {
+                query = "SELECT DISTINCT r.RepoName AS DependRepo , rr.RepoName AS SourceRepo " +
+                        "FROM (DependencyManager.RepositoryTable r JOIN DependencyManager.RepositoryDependencyTable rd " +
+                        "ON r.RepoID = rd.DependRepoId) JOIN DependencyManager.DependencyTable d " +
+                        "ON rd.ArtifactID = d.ArtifactId AND rd.GroupId = d.GroupId AND rd.Version = d.Version " +
+                        "JOIN DependencyManager.RepositoryTable rr ON d.SourceRepoId = rr.RepoID " +
+                        "WHERE r.RepoName != rr.RepoName";
+            }
+
+            if (isSnapshots.equals("true")) {
+                query += " AND d.Version LIKE '%snapshot%'";
+            }
+
+            ResultSet rs = st.executeQuery(query);
+
+            nodes = new HashMap<String, ArrayList<String>>();
+
+            while (rs.next()) {
+
+                if (!repositoryName.equals("")){
+                    ArrayList<String> dep =  nodes.get(rs.getString(1));
+
+                    if (dep == null){
+                        dep = new ArrayList<String>();
+                    }
+
+                    dep.add(rs.getString(2));
+
+                    nodes.put(rs.getString(1), dep);
+                }
+                else {
+                    json += '"' + rs.getString(1) + '"' + "->" + '"'
+                            + rs.getString(2) + '"' + ";";
+
+                }
+            }
+
+            st.close();
+            con.close();
+
+            if (!repositoryName.equals("")) {
+                json += constructJson(repositoryName, 0);
+            }
+
+            System.out.println(json);
+
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
+        return json;
+    }
+
+    private String constructJson(String repoName, int count) {
+
+        String json = "";
+        ArrayList<String> dep =nodes.get(repoName);
+
+        if (dep != null){
+            for (int i = 0; i  < dep.size(); i++){
+                json += '"' + repoName + '"' + "->" + '"'
+                        + dep.get(i) + '"' + ";";
+                if ( count < MAX_RECUSION_DEPTH) {
+                    json += constructJson(dep.get(i), count + 1);
+                }
+            }
+        }
+
+        return  json;
+    }
+%>
 
 <html>
 <head>
@@ -18,30 +116,141 @@
         } );
     </script>
 </head>
+
+
+<!-- graph content-->
+<script type="text/javascript" src="js/d3.v3.js"></script>
+<script type="text/javascript" src="js/graphlib-dot.js"></script>
+<script type="text/javascript" src="js/dagre-d3.js"></script>
+
+<style type="text/css">
+    svg {
+        border: 1px solid #999;
+        overflow: hidden;
+    }
+
+    .node {
+        white-space: nowrap;
+    }
+
+    .node rect,
+    .node circle,
+    .node ellipse {
+        stroke: #333;
+        fill: #fff;
+        stroke-width: 1.5px;
+    }
+
+    .cluster rect {
+        stroke: #333;
+        fill: #000;
+        fill-opacity: 0.1;
+        stroke-width: 1.5px;
+    }
+
+    .edgePath path.path {
+        stroke: #333;
+        stroke-width: 1.5px;
+        fill: none;
+    }
+</style>
+
+<style>
+    h1, h2 {
+        color: #333;
+    }
+
+    textarea {
+        width: 800px;
+    }
+
+    label {
+        margin-top: 1em;
+        display: block;
+    }
+
+    .error {
+        color: red;
+    }
+</style>
+
+
+
+</head>
+
+
+
 <body>
 
 <h1>Dependency Manager</h1>
 
 <%
-String groupId="";
-String artifactId="";
+
+HashMap<String, ArrayList<String>> groupIds = new HashMap<String, ArrayList<String>>();
+HashMap<String, ArrayList<String>> artifactIds = new HashMap<String, ArrayList<String>>();
+
+String json ="";
+String choice = "";
+String groupId = "";
+String artifactId = "";
+String repositoryId = "";
 String userName="root";
 String password="Root@wso2";
 Class.forName("com.mysql.jdbc.Driver");
 Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/DependencyManager", userName,password);
-if(request.getParameter("groupId")!=null){;
+if(request.getParameter("groupId")!=null){
 	groupId=request.getParameter("groupId");	
 }
-if(request.getParameter("artifactId")!=null){;
+if(request.getParameter("artifactId")!=null){
 	artifactId=request.getParameter("artifactId");	
 }
+if(request.getParameter("choice")!=null){
+    choice=request.getParameter("choice");
+}
+
+if(request.getParameter("repositoryId")!=null){
+    repositoryId=request.getParameter("repositoryId");
+}
+
+
+
+    Statement st = con.createStatement();
+    String query = "select GroupId, ArtifactID, Version from DependencyTable";
+    ResultSet rs= st.executeQuery(query);
+    while(rs.next()){
+
+        ArrayList<String> artifacts = groupIds.get(rs.getString(1));
+
+        if (artifacts == null) {
+            artifacts = new ArrayList<String>();
+        }
+
+        artifacts.add(rs.getString(2));
+        groupIds.put(rs.getString(1), artifacts);
+
+        ArrayList<String> versions =  artifactIds.get(rs.getString(2));
+
+        if (versions == null) {
+            versions = new ArrayList<String>();
+        }
+
+        versions.add(rs.getString(3));
+        artifactIds.put(rs.getString(2), versions);
+
+    }
+
+
 %>
 	<FORM name="formIndex1" action="DisplayData.jsp" METHOD="POST">
 		<select id="cBoxChoice" name="cBoxChoice" onchange="loadValues(this.value)">
 			<option selected disabled>--Select--</option>
 			<option value="Artifact">Artifacts</option>
 			<option value="Repository">Repositories</option>
-		</select> 
+		</select>
+
+
+
+
 		<select id="cBoxRepository" name="cBoxRepository" onchange="showButtons(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select Repository--</option>
 		</select>
@@ -60,32 +269,31 @@ if(request.getParameter("artifactId")!=null){;
 		</select>
 		<select id="cBoxArtifact" name="cBoxArtifact" onchange="showVersion(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select ArtifactId--</option>
-			<% if(!groupId.equals("")){			
-				Statement st = con.createStatement();
-				String query = "select ArtifactID from DependencyTable where GroupId='"+groupId+"' " +
-                        "group by ArtifactID order by ArtifactID";
-				ResultSet rs= st.executeQuery(query);
-				while(rs.next()){		
-                   %>
- 					<option value=<%=rs.getString(1)%>><%=rs.getString(1)%></option>
-                   <%
-                }						
-			}
-			%>
+            <% if(!groupId.equals("")){
+
+                ArrayList<String> artifacts = groupIds.get(groupId);
+
+                for (int i =0; i < artifacts.size(); i++){
+            %>
+            <option value=<%=artifacts.get(i)%>><%=artifacts.get(i)%></option>
+            <%
+                    }
+                }
+            %>
 		</select >
 		<select id="cBoxVersion" name="cBoxVersion" style="display: none" onchange="displayUsgaeButton()">
 					<option selected disabled id="selectOption">--Select Version--</option>
-					<% if(!artifactId.equals("")){			
-				Statement st = con.createStatement();
-				String query = "select Version from DependencyTable where ArtifactId='"+artifactId+"'";
-				ResultSet rs= st.executeQuery(query);
-				while(rs.next()){		
-                   %>
- 					<option value=<%=rs.getString(1)%>><%=rs.getString(1)%></option>
-                   <%
-                }						
-			}
-			%>
+            <% if(!artifactId.equals("")){
+
+                ArrayList<String> versions = artifactIds.get(artifactId);
+
+                for (int i =0; i < versions.size(); i++){
+            %>
+            <option value=<%=versions.get(i)%>><%=versions.get(i)%></option>
+            <%
+                    }
+                }
+            %>
 		</select>
 
         <br/><br/>
@@ -103,12 +311,19 @@ if(request.getParameter("artifactId")!=null){;
 <button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none"
         onclick="openGraph('Artifact')">Show Artifact graph</button>
 
+<form>
+    <textarea id="inputGraph" rows="5" style="display: block"/></textarea>
+    <a id="graphLink">Link for this graph</a>
+    <svg id="svgGraph" width=100% height=600>
+        <g/>
+    </svg>
+</form>
 
 
 
 	<script>
-	function loadValues(value){ 
-		//when option 'Repository' is selected 
+	function loadValues(value){
+		//when option 'Repository' is selected
 		if(value=="Repository"){
 			document.getElementById("cBoxGroup").style="display:none";
 			document.getElementById("cBoxArtifact").style="display:none";
@@ -121,9 +336,9 @@ if(request.getParameter("artifactId")!=null){;
 			opt.text="All Repositories";
 			opt.value="All";
 			<%
-			Statement st = con.createStatement();
-			String query = "select RepoName from RepositoryTable order by RepoName";
-			ResultSet rs = st.executeQuery(query);
+			 st = con.createStatement();
+			 query = "select RepoName from RepositoryTable order by RepoName";
+			 rs = st.executeQuery(query);
 			while (rs.next()) {
 				int count = 0;
 				Statement st1 = con.createStatement();
@@ -143,31 +358,36 @@ if(request.getParameter("artifactId")!=null){;
 				document.getElementById("cBoxRepository").options.add(opt);
 			<%}%>
 			}else if(value=="Artifact"){
-				
+			    document.getElementById("svgGraph").style.display = "none";
 				document.getElementById("cBoxGroup").style="display:inline";
 				document.getElementById("cBoxRepository").style="display:none";
 				document.getElementById("btnShowDependencies").style="display:none";
-				document.getElementById("btnShowArtifacts").style="display:none";	
-				document.getElementById("btnShowRepoGraph").style="display:none";	
-				document.getElementById("btnShowArtifactGraph").style="display:none";	
-				document.getElementById("snapshotVersions").style="display:none";	
+				document.getElementById("btnShowArtifacts").style="display:none";
+				document.getElementById("btnShowRepoGraph").style="display:none";
+				document.getElementById("btnShowArtifactGraph").style="display:none";
+				document.getElementById("snapshotVersions").style="display:none";
 				document.getElementById("text").style="display:none";
-				document.getElementById("thirdParty").style="display:none";	
+				document.getElementById("thirdParty").style="display:none";
 				document.getElementById("textThirdParty").style="display:none";
-								
+
 				<%
-				Statement st2 = con.createStatement();
-				String query2 = "select GroupId from DependencyTable group by GroupId order by GroupId";
-				ResultSet rs2 = st2.executeQuery(query2);
-				while(rs2.next()){
-					%>
-		
-					var opt = document.createElement("option");
-					document.getElementById("cBoxGroup").options.add(opt);
-					opt.text="<%out.print(rs2.getString(1));%>";
-					opt.value="<%out.print(rs2.getString(1));%>";
-					document.getElementById("cBoxGroup").options.add(opt);
-				<%}
+
+				Iterator it = groupIds.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry pair = (Map.Entry)it.next();
+
+                        %>
+
+                var opt = document.createElement("option");
+                document.getElementById("cBoxGroup").options.add(opt);
+                opt.text="<%out.print(pair.getKey());%>";
+                opt.value="<%out.print(pair.getKey());%>";
+                document.getElementById("cBoxGroup").options.add(opt);
+                <%
+                it.remove(); // avoids a ConcurrentModificationException
+            }
+
+
 				%>
 			}
 		}
@@ -183,14 +403,14 @@ if(request.getParameter("artifactId")!=null){;
 			document.getElementById("textThirdParty").style = "display:inline";
 
 		}
-		
-		function showArtifactValue(value){	
+
+		function showArtifactValue(value){
 			document.getElementById("cBoxArtifact").style = "display:inline";
 			var form = document.createElement("form");
             form.setAttribute("method", "post");
             form.setAttribute("action", "index.jsp");
             form.setAttribute("target", "_self");
-            
+
             var input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'groupId';
@@ -199,21 +419,21 @@ if(request.getParameter("artifactId")!=null){;
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
-		}	
-		
+		}
+
 		function showVersion(value){
 			document.getElementById("cBoxVersion").style = "display:inline";
 			var form = document.createElement("form");
             form.setAttribute("method", "post");
             form.setAttribute("action", "index.jsp");
             form.setAttribute("target", "_self");
-            
+
             var input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'groupId';
             input.value =  document.getElementById("cBoxGroup").value;
             form.appendChild(input);
-           
+
             input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'artifactId';
@@ -223,11 +443,11 @@ if(request.getParameter("artifactId")!=null){;
             form.submit();
             document.body.removeChild(form);
 		}
-		
+
 		function displayUsgaeButton(){
 			document.getElementById("btnShowUsage").style = "display:inline";
 		}
-		
+
 		function snapshotChange(){
 			if(document.getElementById('snapshotVersions').checked){
 				document.getElementById("thirdParty").disabled = true;
@@ -235,7 +455,7 @@ if(request.getParameter("artifactId")!=null){;
 				document.getElementById("thirdParty").disabled = false;
 			}
 		}
-		
+
 		function thirdPartyChange(){
 			if(document.getElementById('thirdParty').checked){
                 document.getElementById("snapshotVersions").disabled = true;
@@ -250,17 +470,17 @@ if(request.getParameter("artifactId")!=null){;
                 document.getElementById("btnShowRepoGraph").style = "display:inline";
 			}
 		}
-		
+
 		function openGraph(value){
-		
+
 			var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository")
                                     .selectedIndex].text;
-			var repository=repo.substring(0, repo.indexOf('(')); 
-			
+			var repository=repo.substring(0, repo.indexOf('('));
+
             var form = document.createElement("form");
             form.setAttribute("method", "post");
-            form.setAttribute("action", "graph.jsp");
-            form.setAttribute("target", "graph.jsp");
+            form.setAttribute("action", "index.jsp");
+            form.setAttribute("target", "_self");
 
             var input = document.createElement('input');
             input.type = 'hidden';
@@ -276,11 +496,11 @@ if(request.getParameter("artifactId")!=null){;
             input.type = 'hidden';
             input.name = 'repositoryName';
 			if(repo!="All Repositories"){
-				input.value =  repository;    	
+				input.value =  repository;
 			}else{
 				input.value =  "";
-			}			
-       	 	form.appendChild(input);        
+			}
+       	 	form.appendChild(input);
 
             input = document.createElement('input');
             input.type = 'hidden';
@@ -292,11 +512,45 @@ if(request.getParameter("artifactId")!=null){;
             }
             form.appendChild(input);
 
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'choice';
+            input.value= document.getElementById("cBoxChoice").value;
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'repositoryId';
+            input.value= document.getElementById("cBoxRepository").value;
+            form.appendChild(input);
+
             document.body.appendChild(form);
             form.submit();
             document.body.removeChild(form);
 		}
 	</script>
+
+<%
+    if (!choice.equals("")) {
+%>
+<script>
+            document.getElementById("cBoxChoice").value = "<%out.print(choice);%>";
+            loadValues(document.getElementById("cBoxChoice").value);
+        </script>
+<%
+    }
+%>
+
+<%
+    if (!repositoryId.equals("")) {
+%>
+<script>
+            document.getElementById("cBoxRepository").value = "<%out.print(repositoryId);%>";
+            showButtons(document.getElementById("cBoxRepository").value);
+        </script>
+<%
+    }
+%>
 	
 	<% if(!artifactId.equals("")){%>
 	<script>			
@@ -330,7 +584,117 @@ if(request.getParameter("artifactId")!=null){;
 				 
 
 	
-	
+<!-- graph content-->
+
+<%
+    if(request.getParameter("graphType")!=null && request.getParameter("repositoryName")!=null &&
+            request.getParameter("snapshots")!=null) {
+        json = "digraph {" + loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),
+                request.getParameter("snapshots"), "") + "}";
+    }
+%>
+
+
+
+    <script type="text/javascript">
+
+        document.getElementById("inputGraph").value = '<%out.print(json);%>';
+        document.getElementById("inputGraph").style.display = "none";
+        document.getElementById("graphLink").style.display = "none";
+    </script>
+
+    <script type="text/javascript">
+        function graphToURL() {
+            var elems = [window.location.protocol, '//',
+                window.location.host,
+                window.location.pathname,
+                '?'];
+
+            var queryParams = [];
+            if (debugAlignment) {
+                queryParams.push('alignment=' + debugAlignment);
+            }
+            queryParams.push('graph=' + encodeURIComponent(inputGraph.value));
+            elems.push(queryParams.join('&'));
+
+            return elems.join('');
+        }
+
+        var inputGraph = document.querySelector("#inputGraph");
+
+        var graphLink = d3.select("#graphLink");
+
+        var oldInputGraphValue;
+
+        var graphRE = /[?&]graph=([^&]+)/;
+        var graphMatch = window.location.search.match(graphRE);
+        if (graphMatch) {
+            inputGraph.value = decodeURIComponent(graphMatch[1]);
+        }
+        var debugAlignmentRE = /[?&]alignment=([^&]+)/;
+        var debugAlignmentMatch = window.location.search.match(debugAlignmentRE);
+        var debugAlignment;
+        if (debugAlignmentMatch) debugAlignment = debugAlignmentMatch[1];
+
+        // Set up zoom support
+        var svg = d3.select("svg"),
+                inner = d3.select("svg g"),
+                zoom = d3.behavior.zoom().on("zoom", function() {
+                    inner.attr("transform", "translate(" + d3.event.translate + ")" +
+                            "scale(" + d3.event.scale + ")");
+                });
+        svg.call(zoom);
+
+        // Create and configure the renderer
+        var render = dagreD3.render();
+
+        function tryDraw() {
+            var g;
+            if (oldInputGraphValue !== inputGraph.value) {
+                inputGraph.setAttribute("class", "");
+                oldInputGraphValue = inputGraph.value;
+                try {
+                    g = graphlibDot.read(inputGraph.value);
+                } catch (e) {
+                    inputGraph.setAttribute("class", "error");
+                    throw e;
+                }
+
+                // Save link to new graph
+                graphLink.attr("href", graphToURL());
+
+                // Set margins, if not present
+                if (!g.graph().hasOwnProperty("marginx") &&
+                        !g.graph().hasOwnProperty("marginy")) {
+                    g.graph().marginx = 20;
+                    g.graph().marginy = 20;
+                }
+
+                g.graph().transition = function(selection) {
+                    return selection.transition().duration(500);
+                };
+
+                // Render the graph into svg g
+                d3.select("svg g").call(render, g);
+            }
+        }
+
+        <% if ( !(json.equals(""))){ %>
+        document.getElementById("svgGraph").style.display = "inline";
+        tryDraw();
+        <% }
+            else {
+            %>
+
+        document.getElementById("svgGraph").style.display = "none";
+
+            <%} %>
+
+    </script>
+
+
+
+
 
 </body>
 </html>
