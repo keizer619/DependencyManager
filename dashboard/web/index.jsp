@@ -423,6 +423,57 @@ if(request.getParameter("thirdParty") != null) {
 
 
 	<script>
+    function loadCombos(){
+    	document.getElementById("cBoxRepository").style="display:inline";
+			var opt = document.createElement("option");
+			document.getElementById("cBoxRepository").options.add(opt);
+			opt.text="All Repositories";
+			opt.value="All";
+			<%
+        st = con.createStatement();
+        query = "select RepoName from RepositoryTable order by RepoName";
+        rs = st.executeQuery(query);
+        while (rs.next()) {
+            int count = 0;
+            Statement st1 = con.createStatement();
+            String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R" +
+                    " where R.RepoId=RD.DependRepoId and R.RepoName='"+ rs.getString(1) + "' ";
+            ResultSet rs1 = st1.executeQuery(query1);
+            while (rs1.next()) {
+                count = rs1.getInt(1);
+            }
+            String depndencyNo = Integer.toString(count);
+            String optionValue = rs.getString(1).concat(
+                    "(No of dependencies:" + depndencyNo + ")");%>
+				var opt = document.createElement("option");
+				document.getElementById("cBoxRepository").options.add(opt);
+				opt.text="<%out.print(optionValue);%>";
+				opt.value="<%out.print(rs.getString(1));%>";
+				document.getElementById("cBoxRepository").options.add(opt);
+			<%}%>
+
+    <%
+
+        Iterator it = groupIds.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+
+    %>
+
+                var opt = document.createElement("option");
+                document.getElementById("cBoxGroup").options.add(opt);
+                opt.text="<%out.print(pair.getKey());%>";
+                opt.value="<%out.print(pair.getKey());%>";
+                document.getElementById("cBoxGroup").options.add(opt);
+                <%
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+
+
+    %>
+
+    }
+
 	function loadValues(value){
 		//when option 'Repository' is selected
 		if(value=="Repository"){
@@ -431,33 +482,7 @@ if(request.getParameter("thirdParty") != null) {
 			document.getElementById("cBoxVersion").style="display:none";
 			document.getElementById("btnShowUsage").style="display:none";
 
-			document.getElementById("cBoxRepository").style="display:inline";
-			var opt = document.createElement("option");
-			document.getElementById("cBoxRepository").options.add(opt);
-			opt.text="All Repositories";
-			opt.value="All";
-			<%
-			 st = con.createStatement();
-			 query = "select RepoName from RepositoryTable order by RepoName";
-			 rs = st.executeQuery(query);
-			while (rs.next()) {
-				int count = 0;
-				Statement st1 = con.createStatement();
-				String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R" +
-				 " where R.RepoId=RD.DependRepoId and R.RepoName='"+ rs.getString(1) + "' ";
-				ResultSet rs1 = st1.executeQuery(query1);
-				while (rs1.next()) {
-					count = rs1.getInt(1);
-				}
-				String depndencyNo = Integer.toString(count);
-				String optionValue = rs.getString(1).concat(
-						"(No of dependencies:" + depndencyNo + ")");%>
-				var opt = document.createElement("option");
-				document.getElementById("cBoxRepository").options.add(opt);
-				opt.text="<%out.print(optionValue);%>";
-				opt.value="<%out.print(rs.getString(1));%>";
-				document.getElementById("cBoxRepository").options.add(opt);
-			<%}%>
+
 			}else if(value=="Artifact"){
 			    document.getElementById("svgGraph").style.display = "none";
 				document.getElementById("cBoxGroup").style="display:inline";
@@ -471,25 +496,7 @@ if(request.getParameter("thirdParty") != null) {
 				document.getElementById("thirdParty").style="display:none";
 				document.getElementById("textThirdParty").style="display:none";
 
-				<%
 
-				Iterator it = groupIds.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry)it.next();
-
-                        %>
-
-                var opt = document.createElement("option");
-                document.getElementById("cBoxGroup").options.add(opt);
-                opt.text="<%out.print(pair.getKey());%>";
-                opt.value="<%out.print(pair.getKey());%>";
-                document.getElementById("cBoxGroup").options.add(opt);
-                <%
-                it.remove(); // avoids a ConcurrentModificationException
-            }
-
-
-				%>
 			}
 		}
 
@@ -629,6 +636,8 @@ if(request.getParameter("thirdParty") != null) {
             form.submit();
             document.body.removeChild(form);
 		}
+
+		loadCombos();
 	</script>
 
 <%
@@ -973,8 +982,7 @@ if(request.getParameter("thirdParty") != null) {
                 query1 += " and RD.GroupId='" + groupId1 + "'";
             }
             if (!artifactId1.equals("All Artifacts")){
-                query1 +=  " and RD.ArtifactId='" + artifactId1 + "' " +
-                        "and RD.Version='" + version1 + "'";
+                query1 +=  " and RD.ArtifactId='" + artifactId1 + "' ";
             }
             if (!version1.equals("All Versions")){
                 query1 +=  " and RD.Version='" + version1 + "'";
@@ -990,8 +998,8 @@ if(request.getParameter("thirdParty") != null) {
             out.println("<th>Latest Version</th>");
             out.println("<th>Source Repository</th>");
             out.println("<th>Depend Repository</th>");
-            out.println("<th></th>");
-            out.println("<th></th>");
+            out.println("<th>Show Dependencies </th>");
+            out.println("<th>Show Artifacts</th>");
             out.println("</tr>");
             out.println("</thead>");
             while (rs1.next()) {
@@ -1002,8 +1010,8 @@ if(request.getParameter("thirdParty") != null) {
                 out.println("<td>" + rs1.getString(4) + "</td>");
                 out.println("<td>" + rs1.getString(5) + "</td>");
                 out.println("<td>" + rs1.getString(6) + "</td>");
-                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"dependencies\")' >Show Dependencies</a></td>");
-                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"artifacts\")' >Show Artifacts</a></td>");
+                out.println("<td><a href='' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"dependencies\")' >Show Dependencies</a></td>");
+                out.println("<td><a href='' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"artifacts\")' >Show Artifacts</a></td>");
                 out.println("</tr>");
             }
 
