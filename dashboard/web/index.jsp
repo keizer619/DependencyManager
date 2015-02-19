@@ -335,12 +335,29 @@ if(request.getParameter("thirdParty") != null) {
 		
 		<select id="cBoxGroup" name="cBoxGroup" onChange="showArtifactValue(this.value)" style="display: none" >
 			<option selected disabled id="selectOption">--Select GroupId--</option>
+            <option id="All">All Groups</option>
 		</select>
 		<select id="cBoxArtifact" name="cBoxArtifact" onchange="showVersion(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select ArtifactId--</option>
+            <option id="All">All Artifacts</option>
             <% if(!groupId.equals("")){
 
-                ArrayList<String> artifacts = groupIds.get(groupId);
+                ArrayList<String> artifacts = new ArrayList<String>();
+
+                if (!groupId.equals("All Groups")){
+                    artifacts = groupIds.get(groupId);
+                }
+                else {
+                    Iterator it = groupIds.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry)it.next();
+                        artifacts.addAll((ArrayList<String>) pair.getValue());
+                        it.remove();
+                    }
+
+                }
+
+
 
                 for (int i =0; i < artifacts.size(); i++){
             %>
@@ -352,9 +369,24 @@ if(request.getParameter("thirdParty") != null) {
 		</select >
 		<select id="cBoxVersion" name="cBoxVersion" style="display: none" onchange="displayUsgaeButton()">
 					<option selected disabled id="selectOption">--Select Version--</option>
+                    <option id="All">All Versions</option>
             <% if(!artifactId.equals("")){
 
-                ArrayList<String> versions = artifactIds.get(artifactId);
+                ArrayList<String> versions = new ArrayList<String>();
+
+
+                if (!artifactId.equals("All Artifacts")){
+                    versions = artifactIds.get(artifactId);
+                }
+                else {
+                    Iterator it = artifactIds.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry)it.next();
+                        versions.addAll((ArrayList<String>)pair.getValue());
+                        it.remove();
+                    }
+
+                }
 
                 for (int i =0; i < versions.size(); i++){
             %>
@@ -933,9 +965,21 @@ if(request.getParameter("thirdParty") != null) {
                     "join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId " +
                     "and RD.GroupId = D.GroupId and RD.Version = D.Version " +
                     "join DependencyManager.RepositoryTable RR on D.SourceRepoId = RR.RepoID" +
-                    " where RD.GroupId='" + groupId1 + "' and RD.ArtifactId='" + artifactId1 + "' " +
-                    "and RD.Version='" + version1 + "' and RD.DependRepoId=R.RepoId " +
+                    " where  RD.DependRepoId=R.RepoId " +
                     "and RD.GroupId=D.GroupId and RD.ArtifactId=D.ArtifactID and RD.Version=D.Version";
+
+
+            if (!groupId1.equals("All Groups")){
+                query1 += " and RD.GroupId='" + groupId1 + "'";
+            }
+            if (!artifactId1.equals("All Artifacts")){
+                query1 +=  " and RD.ArtifactId='" + artifactId1 + "' " +
+                        "and RD.Version='" + version1 + "'";
+            }
+            if (!version1.equals("All Versions")){
+                query1 +=  " and RD.Version='" + version1 + "'";
+            }
+
             ResultSet rs1 = st1.executeQuery(query1);
             out.println("<table id='tbMain' class='display' cellspacing='0' width='100%'>");
             out.println("<thead>");
