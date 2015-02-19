@@ -174,6 +174,39 @@
     }
 </style>
 
+    <script>
+        function showDependencies(repoId, source){
+
+        var form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", "index.jsp");
+        form.setAttribute("target", "_self");
+
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'cBoxRepository';
+        input.value= repoId;
+        form.appendChild(input);
+
+        input = document.createElement('input');
+        input.type = 'hidden';
+
+        if (source == "dependencies") {
+            input.name = 'btnShowDependencies';
+            input.value= 'Show Dependencies';
+        }
+        else {
+            input.name = 'btnShowArtifacts';
+            input.value= 'Show Artifacts';
+        }
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+    }
+    </script>
 
 
 </head>
@@ -342,10 +375,10 @@ if(request.getParameter("thirdParty") != null) {
 	</FORM>
 
 <button id="btnShowRepoGraph" name="btnShowRepoGraph" style="display: none" onclick="openGraph('repo')">
-    Show Repository graph
+    Show Graph (by Repositories)
 </button>
 <button id="btnShowArtifactGraph" name="btnShowArtifactGraph" style="display: none"
-        onclick="openGraph('Artifact')">Show Artifact graph</button>
+        onclick="openGraph('Artifact')">Show Graph (by Artifacts)</button>
 
 <form>
     <textarea id="inputGraph" rows="5" style="display: block"/></textarea>
@@ -839,6 +872,7 @@ if(request.getParameter("thirdParty") != null) {
             //if Show Artifact button is clicked
         } else if (showArtifact != "" && showArtifact.equals("Show Artifacts")) {
 
+
             String repository = request.getParameter("cBoxRepository");
             Statement st1 = con.createStatement();
             String query1 = "";
@@ -881,12 +915,19 @@ if(request.getParameter("thirdParty") != null) {
             out.println("</table>");
 
         } else if (showUsage != null && showUsage.equals("Show Usage")) {
+
+%>
+<script>
+    displayUsgaeButton();
+</script>
+<%
+
             String groupId1 = request.getParameter("cBoxGroup");
             String artifactId1 = request.getParameter("cBoxArtifact");
             String version1 = request.getParameter("cBoxVersion");
             Statement st1 = con.createStatement();
 
-            String query1 = "SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion, RR.RepoName, R.RepoName " +
+            String query1 = "SELECt RD.GroupId,RD.ArtifactId,RD.Version, D.LatestVersion, RR.RepoName, R.RepoName, R.RepoID " +
                     "FROM (DependencyManager.RepositoryTable R " +
                     "join DependencyManager.RepositoryDependencyTable RD on R.RepoID = RD.DependRepoId) " +
                     "join DependencyManager.DependencyTable D on RD.ArtifactID = D.ArtifactId " +
@@ -905,6 +946,8 @@ if(request.getParameter("thirdParty") != null) {
             out.println("<th>Latest Version</th>");
             out.println("<th>Source Repository</th>");
             out.println("<th>Depend Repository</th>");
+            out.println("<th></th>");
+            out.println("<th></th>");
             out.println("</tr>");
             out.println("</thead>");
             while (rs1.next()) {
@@ -915,6 +958,8 @@ if(request.getParameter("thirdParty") != null) {
                 out.println("<td>" + rs1.getString(4) + "</td>");
                 out.println("<td>" + rs1.getString(5) + "</td>");
                 out.println("<td>" + rs1.getString(6) + "</td>");
+                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"dependencies\")' >Show Dependencies</a></td>");
+                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"artifacts\")' >Show Artifacts</a></td>");
                 out.println("</tr>");
             }
 
@@ -922,6 +967,7 @@ if(request.getParameter("thirdParty") != null) {
         }
     }
 %>
+
 
 
 </body>
