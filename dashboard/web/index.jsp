@@ -1,8 +1,5 @@
 <%@page import="java.sql.*"%>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.HashMap" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.Map" %>
+<%@ page import="java.util.*" %>
 
 <%!
     public static int MAX_RECUSION_DEPTH = 2;
@@ -70,8 +67,6 @@
                 json += constructJson(repositoryName, 0);
             }
 
-            System.out.println(json);
-
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
@@ -118,94 +113,94 @@
 
 
 
-<!-- graph content-->
-<script type="text/javascript" src="js/d3.v3.js"></script>
-<script type="text/javascript" src="js/graphlib-dot.js"></script>
-<script type="text/javascript" src="js/dagre-d3.js"></script>
+    <!-- graph content-->
+    <script type="text/javascript" src="js/d3.v3.js"></script>
+    <script type="text/javascript" src="js/graphlib-dot.js"></script>
+    <script type="text/javascript" src="js/dagre-d3.js"></script>
 
-<style type="text/css">
-    svg {
-        border: 1px solid #999;
-        overflow: hidden;
-    }
+    <style type="text/css">
+        svg {
+            border: 1px solid #999;
+            overflow: hidden;
+        }
 
-    .node {
-        white-space: nowrap;
-    }
+        .node {
+            white-space: nowrap;
+        }
 
-    .node rect,
-    .node circle,
-    .node ellipse {
-        stroke: #333;
-        fill: #fff;
-        stroke-width: 1.5px;
-    }
+        .node rect,
+        .node circle,
+        .node ellipse {
+            stroke: #333;
+            fill: #fff;
+            stroke-width: 1.5px;
+        }
 
-    .cluster rect {
-        stroke: #333;
-        fill: #000;
-        fill-opacity: 0.1;
-        stroke-width: 1.5px;
-    }
+        .cluster rect {
+            stroke: #333;
+            fill: #000;
+            fill-opacity: 0.1;
+            stroke-width: 1.5px;
+        }
 
-    .edgePath path.path {
-        stroke: #333;
-        stroke-width: 1.5px;
-        fill: none;
-    }
-</style>
+        .edgePath path.path {
+            stroke: #333;
+            stroke-width: 1.5px;
+            fill: none;
+        }
+    </style>
 
-<style>
-    h1, h2 {
-        color: #333;
-    }
+    <style>
+        h1, h2 {
+            color: #333;
+        }
 
-    textarea {
-        width: 800px;
-    }
+        textarea {
+            width: 800px;
+        }
 
-    label {
-        margin-top: 1em;
-        display: block;
-    }
+        label {
+            margin-top: 1em;
+            display: block;
+        }
 
-    .error {
-        color: red;
-    }
-</style>
+        .error {
+            color: red;
+        }
+    </style>
 
     <script>
         function showDependencies(repoId, source){
 
-        var form = document.createElement("form");
-        form.setAttribute("method", "post");
-        form.setAttribute("action", "index.jsp");
-        form.setAttribute("target", "_self");
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "index.jsp");
+            form.setAttribute("target", "_self");
 
-        input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'cBoxRepository';
-        input.value= repoId;
-        form.appendChild(input);
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'cBoxRepository';
+            input.value= repoId;
+            form.appendChild(input);
 
-        input = document.createElement('input');
-        input.type = 'hidden';
+            input = document.createElement('input');
+            input.type = 'hidden';
 
-        if (source == "dependencies") {
-            input.name = 'btnShowDependencies';
-            input.value= 'Show Dependencies';
+            if (source == "dependencies") {
+                input.name = 'btnShowDependencies';
+                input.value= 'Show Dependencies';
+            }
+            else {
+                input.name = 'btnShowArtifacts';
+                input.value= 'Show Artifacts';
+            }
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
         }
-        else {
-            input.name = 'btnShowArtifacts';
-            input.value= 'Show Artifacts';
-        }
-        form.appendChild(input);
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-
-    }
     </script>
 
 
@@ -357,6 +352,11 @@ if(request.getParameter("thirdParty") != null) {
 
                 }
 
+                HashSet hs = new HashSet();
+                hs.addAll(artifacts);
+                artifacts.clear();
+                artifacts.addAll(hs);
+
 
 
                 for (int i =0; i < artifacts.size(); i++){
@@ -387,6 +387,11 @@ if(request.getParameter("thirdParty") != null) {
                     }
 
                 }
+
+                HashSet hs = new HashSet();
+                hs.addAll(versions);
+                versions.clear();
+                versions.addAll(hs);
 
                 for (int i =0; i < versions.size(); i++){
             %>
@@ -1010,8 +1015,8 @@ if(request.getParameter("thirdParty") != null) {
                 out.println("<td>" + rs1.getString(4) + "</td>");
                 out.println("<td>" + rs1.getString(5) + "</td>");
                 out.println("<td>" + rs1.getString(6) + "</td>");
-                out.println("<td><a href='' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"dependencies\")' >Show Dependencies</a></td>");
-                out.println("<td><a href='' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"artifacts\")' >Show Artifacts</a></td>");
+                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"dependencies\")' >Show Dependencies</a></td>");
+                out.println("<td><a href='#' class='myButton' onclick='showDependencies(\""+ rs1.getString(6)+"\",\"artifacts\")' >Show Artifacts</a></td>");
                 out.println("</tr>");
             }
 
