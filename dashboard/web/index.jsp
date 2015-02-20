@@ -429,7 +429,6 @@ if(request.getParameter("thirdParty") != null) {
 
 	<script>
     function loadCombos(){
-    	document.getElementById("cBoxRepository").style="display:inline";
 			var opt = document.createElement("option");
 			document.getElementById("cBoxRepository").options.add(opt);
 			opt.text="All Repositories";
@@ -486,7 +485,7 @@ if(request.getParameter("thirdParty") != null) {
 			document.getElementById("cBoxArtifact").style="display:none";
 			document.getElementById("cBoxVersion").style="display:none";
 			document.getElementById("btnShowUsage").style="display:none";
-
+            document.getElementById("cBoxRepository").style="display:inline";
 
 			}else if(value=="Artifact"){
 			    document.getElementById("svgGraph").style.display = "none";
