@@ -5,12 +5,8 @@
     public static int MAX_RECUSION_DEPTH = 2;
     private static HashMap<String, ArrayList<String>> nodes;
 
-    public String loadJson(String graphType, String repositoryName, String isSnapshots, String json) {
+    public String loadJson(String graphType, String repositoryName, String isSnapshots, String json, Connection con) {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection con = DriverManager.getConnection(
-                    "jdbc:mysql://mysql-dev-01.cloud.wso2.com:3306/dmdb_tharik", "dmdb_hYfL2YWH",
-                    "Root@wso2");
             Statement st = con.createStatement();
 
             String query;
@@ -201,6 +197,171 @@
             document.body.removeChild(form);
 
         }
+
+        function loadValues(value){
+
+            //when option 'Repository' is selected
+            if(value=="Repository"){
+                document.getElementById("cBoxGroup").style.display = "none";
+                document.getElementById("cBoxArtifact").style.display = "none";
+                document.getElementById("cBoxVersion").style.display = "none";
+                document.getElementById("btnShowUsage").style.display = "none";
+                document.getElementById("cBoxRepository").style.display = "inline";
+
+            }else if(value=="Artifact"){
+                document.getElementById("svgGraph").style.display = "none";
+                document.getElementById("cBoxGroup").style.display = "inline";;
+                document.getElementById("cBoxRepository").style.display = "none";
+                document.getElementById("btnShowDependencies").style.display = "none";
+                document.getElementById("btnShowArtifacts").style.display = "none";
+                document.getElementById("btnShowRepoGraph").style.display = "none";
+                document.getElementById("btnShowArtifactGraph").style.display = "none";
+                document.getElementById("snapshotVersions").style.display = "none";
+                document.getElementById("text").style.display = "none";
+                document.getElementById("thirdParty").style.display = "none";
+                document.getElementById("textThirdParty").style.display = "none";
+
+
+            };
+        }
+
+        function showButtons(value) {
+            document.getElementById("btnShowDependencies").style.display = "inline";
+            document.getElementById("btnShowArtifacts").style.display = "inline";
+            document.getElementById("btnShowRepoGraph").style.display = "inline";
+            document.getElementById("btnShowArtifactGraph").style.display = "inline";
+            document.getElementById("snapshotVersions").style.display = "inline";
+            document.getElementById("text").style.display = "inline";
+            document.getElementById("thirdParty").style.display = "inline";
+            document.getElementById("textThirdParty").style.display = "inline";
+
+        }
+
+        function showArtifactValue(value){
+            document.getElementById("cBoxArtifact").style.display = "inline";
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "index.jsp");
+            form.setAttribute("target", "_self");
+
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'groupId';
+            input.value = value;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
+        function showVersion(value){
+            document.getElementById("cBoxVersion").style.display = "inline";
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "index.jsp");
+            form.setAttribute("target", "_self");
+
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'groupId';
+            input.value =  document.getElementById("cBoxGroup").value;
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'artifactId';
+            input.value =  document.getElementById("cBoxArtifact").value;
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
+        function displayUsgaeButton(){
+            document.getElementById("btnShowUsage").style.display = "inline";
+        }
+
+        function snapshotChange(){
+            if(document.getElementById('snapshotVersions').checked){
+                document.getElementById("thirdParty").disabled = true;
+            }else{
+                document.getElementById("thirdParty").disabled = false;
+            }
+        }
+
+        function thirdPartyChange(){
+            if(document.getElementById('thirdParty').checked){
+                document.getElementById("snapshotVersions").disabled = true;
+                document.getElementById("btnShowArtifacts").style.display = "none";
+                document.getElementById("btnShowArtifactGraph").style.display = "none";
+                document.getElementById("btnShowRepoGraph").style.display = "none";
+
+            }else{
+                document.getElementById("snapshotVersions").disabled = false;
+                document.getElementById("btnShowArtifacts").style.display = "inline";
+                document.getElementById("btnShowArtifactGraph").style.display = "inline";
+                document.getElementById("btnShowRepoGraph").style.display = "inline";
+            }
+        }
+
+        function openGraph(value){
+
+            var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository")
+                    .selectedIndex].text;
+            var repository=repo.substring(0, repo.indexOf('('));
+
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", "index.jsp");
+            form.setAttribute("target", "_self");
+
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'graphType';
+            if(value=="repo"){
+                input.value = 'repositories';
+            }else{
+                input.value = 'artifacts';
+            }
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'repositoryName';
+            if(repo!="All Repositories"){
+                input.value =  repository;
+            }else{
+                input.value =  "";
+            }
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'snapshots';
+            if(document.getElementById("snapshotVersions").checked){
+                input.value = 'true';
+            }else{
+                input.value = 'false';
+            }
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'choice';
+            input.value= document.getElementById("cBoxChoice").value;
+            form.appendChild(input);
+
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'repositoryId';
+            input.value= document.getElementById("cBoxRepository").value;
+            form.appendChild(input);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        }
+
     </script>
 
 
@@ -228,16 +389,19 @@ String groupId = "";
 String artifactId = "";
 String repositoryId = "";
 String version ="";
-String userName="dmdb_hYfL2YWH";
+String userName="root";
 String password="Root@wso2";
+String dbURL = "jdbc:mysql://localhost:3306/DependencyManager";
 Class.forName("com.mysql.jdbc.Driver");
 
-Connection con = DriverManager.getConnection("jdbc:mysql://mysql-dev-01.cloud.wso2.com:3306/dmdb_tharik", userName,password);
+Connection con = DriverManager.getConnection(dbURL, userName,password);
 if(request.getParameter("groupId")!=null){
-	groupId=request.getParameter("groupId");	
+	groupId=request.getParameter("groupId");
+    choice="Artifact";
 }
 if(request.getParameter("artifactId")!=null){
-	artifactId=request.getParameter("artifactId");	
+	artifactId=request.getParameter("artifactId");
+    choice="Artifact";
 }
 if(request.getParameter("choice")!=null){
     choice=request.getParameter("choice");
@@ -281,6 +445,7 @@ if(request.getParameter("thirdParty") != null) {
     Statement st = con.createStatement();
     String query = "select GroupId, ArtifactID, Version from DependencyTable";
     ResultSet rs= st.executeQuery(query);
+
     while(rs.next()){
 
         ArrayList<String> artifacts = groupIds.get(rs.getString(1));
@@ -302,8 +467,6 @@ if(request.getParameter("thirdParty") != null) {
         artifactIds.put(rs.getString(2), versions);
 
     }
-
-
 %>
 	<FORM name="formIndex1" action="index.jsp" METHOD="POST">
 		<select id="cBoxChoice" name="cBoxChoice" onchange="loadValues(this.value)">
@@ -332,18 +495,77 @@ if(request.getParameter("thirdParty") != null) {
 			<option selected disabled id="selectOption">--Select GroupId--</option>
             <option id="All">All Groups</option>
 		</select>
+
+        <script>
+            function loadCombos(){
+                var opt = document.createElement("option");
+                document.getElementById("cBoxRepository").options.add(opt);
+                opt.text="All Repositories";
+                opt.value="All";
+                <%
+            st = con.createStatement();
+            query = "select RepoName from RepositoryTable order by RepoName";
+            rs = st.executeQuery(query);
+            while (rs.next()) {
+                int count = 0;
+                Statement st1 = con.createStatement();
+                String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R" +
+                        " where R.RepoId=RD.DependRepoId and R.RepoName='"+ rs.getString(1) + "' ";
+                ResultSet rs1 = st1.executeQuery(query1);
+                while (rs1.next()) {
+                    count = rs1.getInt(1);
+                }
+                String depndencyNo = Integer.toString(count);
+                String optionValue = rs.getString(1).concat(
+                        "(No of dependencies:" + depndencyNo + ")");%>
+                var opt = document.createElement("option");
+                document.getElementById("cBoxRepository").options.add(opt);
+                opt.text="<%out.print(optionValue);%>";
+                opt.value="<%out.print(rs.getString(1));%>";
+                document.getElementById("cBoxRepository").options.add(opt);
+                <%}%>
+                <%
+
+                    Iterator it = groupIds.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry)it.next();
+
+                %>
+
+                var opt = document.createElement("option");
+                document.getElementById("cBoxGroup").options.add(opt);
+                opt.text="<%out.print(pair.getKey());%>";
+                opt.value="<%out.print(pair.getKey());%>";
+                document.getElementById("cBoxGroup").options.add(opt);
+                <%
+          //  it.remove(); // avoids a ConcurrentModificationException
+        }
+
+
+    %>
+
+            }
+
+
+            loadCombos();
+        </script>
+
+
+
 		<select id="cBoxArtifact" name="cBoxArtifact" onchange="showVersion(this.value)" style="display: none">
 			<option selected disabled id="selectOption">--Select ArtifactId--</option>
             <option id="All">All Artifacts</option>
-            <% if(!groupId.equals("")){
-
+            <%
                 ArrayList<String> artifacts = new ArrayList<String>();
+                if(!groupId.equals("")){
+
+
 
                 if (!groupId.equals("All Groups")){
                     artifacts = groupIds.get(groupId);
                 }
                 else {
-                    Iterator it = groupIds.entrySet().iterator();
+                     it = groupIds.entrySet().iterator();
                     while (it.hasNext()) {
                         Map.Entry pair = (Map.Entry)it.next();
                         artifacts.addAll((ArrayList<String>) pair.getValue());
@@ -379,10 +601,26 @@ if(request.getParameter("thirdParty") != null) {
                     versions = artifactIds.get(artifactId);
                 }
                 else {
-                    Iterator it = artifactIds.entrySet().iterator();
+                    it = artifactIds.entrySet().iterator();
                     while (it.hasNext()) {
                         Map.Entry pair = (Map.Entry)it.next();
-                        versions.addAll((ArrayList<String>)pair.getValue());
+
+                        if (groupId.equals("All Groups") && artifactId.equals("All Artifacts")){
+                            versions.addAll((ArrayList<String>)pair.getValue());
+                        }
+                        else if (!(groupId.equals("All Groups")) && artifactId.equals("All Artifacts")){
+                            artifacts =groupIds.get(groupId);
+                            for (int i = 0; i < artifacts.size(); i++){
+                                if (artifacts.get(i).equals(pair.getKey())){
+                                    versions.addAll(artifactIds.get(artifacts.get(i)));
+                                }
+                            }
+                        }
+                        else {
+                            for (int i = 0; i < artifacts.size(); i++){
+                                versions.addAll(artifactIds.get(artifactId));
+                            }
+                        }
                         it.remove();
                     }
 
@@ -427,222 +665,6 @@ if(request.getParameter("thirdParty") != null) {
 
 
 
-	<script>
-    function loadCombos(){
-			var opt = document.createElement("option");
-			document.getElementById("cBoxRepository").options.add(opt);
-			opt.text="All Repositories";
-			opt.value="All";
-			<%
-        st = con.createStatement();
-        query = "select RepoName from RepositoryTable order by RepoName";
-        rs = st.executeQuery(query);
-        while (rs.next()) {
-            int count = 0;
-            Statement st1 = con.createStatement();
-            String query1 = "select count(RD.GroupId) from RepositoryDependencyTable RD,RepositoryTable R" +
-                    " where R.RepoId=RD.DependRepoId and R.RepoName='"+ rs.getString(1) + "' ";
-            ResultSet rs1 = st1.executeQuery(query1);
-            while (rs1.next()) {
-                count = rs1.getInt(1);
-            }
-            String depndencyNo = Integer.toString(count);
-            String optionValue = rs.getString(1).concat(
-                    "(No of dependencies:" + depndencyNo + ")");%>
-				var opt = document.createElement("option");
-				document.getElementById("cBoxRepository").options.add(opt);
-				opt.text="<%out.print(optionValue);%>";
-				opt.value="<%out.print(rs.getString(1));%>";
-				document.getElementById("cBoxRepository").options.add(opt);
-			<%}%>
-
-    <%
-
-        Iterator it = groupIds.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-
-    %>
-
-                var opt = document.createElement("option");
-                document.getElementById("cBoxGroup").options.add(opt);
-                opt.text="<%out.print(pair.getKey());%>";
-                opt.value="<%out.print(pair.getKey());%>";
-                document.getElementById("cBoxGroup").options.add(opt);
-                <%
-            it.remove(); // avoids a ConcurrentModificationException
-        }
-
-
-    %>
-
-    }
-
-	function loadValues(value){
-		//when option 'Repository' is selected
-		if(value=="Repository"){
-			document.getElementById("cBoxGroup").style="display:none";
-			document.getElementById("cBoxArtifact").style="display:none";
-			document.getElementById("cBoxVersion").style="display:none";
-			document.getElementById("btnShowUsage").style="display:none";
-            document.getElementById("cBoxRepository").style="display:inline";
-
-			}else if(value=="Artifact"){
-			    document.getElementById("svgGraph").style.display = "none";
-				document.getElementById("cBoxGroup").style="display:inline";
-				document.getElementById("cBoxRepository").style="display:none";
-				document.getElementById("btnShowDependencies").style="display:none";
-				document.getElementById("btnShowArtifacts").style="display:none";
-				document.getElementById("btnShowRepoGraph").style="display:none";
-				document.getElementById("btnShowArtifactGraph").style="display:none";
-				document.getElementById("snapshotVersions").style="display:none";
-				document.getElementById("text").style="display:none";
-				document.getElementById("thirdParty").style="display:none";
-				document.getElementById("textThirdParty").style="display:none";
-
-
-			}
-		}
-
-		function showButtons(value) {
-			document.getElementById("btnShowDependencies").style = "display:inline";
-			document.getElementById("btnShowArtifacts").style = "display:inline";
-			document.getElementById("btnShowRepoGraph").style = "display:inline";
-			document.getElementById("btnShowArtifactGraph").style = "display:inline";
-			document.getElementById("snapshotVersions").style = "display:inline";
-			document.getElementById("text").style = "display:inline";
-			document.getElementById("thirdParty").style = "display:inline";
-			document.getElementById("textThirdParty").style = "display:inline";
-
-		}
-
-		function showArtifactValue(value){
-			document.getElementById("cBoxArtifact").style = "display:inline";
-			var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", "index.jsp");
-            form.setAttribute("target", "_self");
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'groupId';
-            input.value = value;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-		}
-
-		function showVersion(value){
-			document.getElementById("cBoxVersion").style = "display:inline";
-			var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", "index.jsp");
-            form.setAttribute("target", "_self");
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'groupId';
-            input.value =  document.getElementById("cBoxGroup").value;
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'artifactId';
-            input.value =  document.getElementById("cBoxArtifact").value;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-		}
-
-		function displayUsgaeButton(){
-			document.getElementById("btnShowUsage").style = "display:inline";
-		}
-
-		function snapshotChange(){
-			if(document.getElementById('snapshotVersions').checked){
-				document.getElementById("thirdParty").disabled = true;
-			}else{
-				document.getElementById("thirdParty").disabled = false;
-			}
-		}
-
-		function thirdPartyChange(){
-			if(document.getElementById('thirdParty').checked){
-                document.getElementById("snapshotVersions").disabled = true;
-                document.getElementById("btnShowArtifacts").style = "display:none";
-                document.getElementById("btnShowArtifactGraph").style = "display:none";
-                document.getElementById("btnShowRepoGraph").style = "display:none";
-
-			}else{
-                document.getElementById("snapshotVersions").disabled = false;
-                document.getElementById("btnShowArtifacts").style = "display:inline";
-                document.getElementById("btnShowArtifactGraph").style = "display:inline";
-                document.getElementById("btnShowRepoGraph").style = "display:inline";
-			}
-		}
-
-		function openGraph(value){
-
-			var repo = document.getElementById("cBoxRepository").options[document.getElementById("cBoxRepository")
-                                    .selectedIndex].text;
-			var repository=repo.substring(0, repo.indexOf('('));
-
-            var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", "index.jsp");
-            form.setAttribute("target", "_self");
-
-            var input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'graphType';
-            if(value=="repo"){
-            	input.value = 'repositories';
-            }else{
-            	input.value = 'artifacts';
-            }
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'repositoryName';
-			if(repo!="All Repositories"){
-				input.value =  repository;
-			}else{
-				input.value =  "";
-			}
-       	 	form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'snapshots';
-            if(document.getElementById("snapshotVersions").checked){
-            	input.value = 'true';
-            }else{
-            	input.value = 'false';
-            }
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'choice';
-            input.value= document.getElementById("cBoxChoice").value;
-            form.appendChild(input);
-
-            input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'repositoryId';
-            input.value= document.getElementById("cBoxRepository").value;
-            form.appendChild(input);
-
-            document.body.appendChild(form);
-            form.submit();
-            document.body.removeChild(form);
-		}
-
-		loadCombos();
-	</script>
 
 <%
     if (!choice.equals("")) {
@@ -674,11 +696,11 @@ if(request.getParameter("thirdParty") != null) {
 	    
 	    element = document.getElementById("cBoxGroup");
 	    element.value = "<%out.print(groupId);%>";
-	    document.getElementById("cBoxArtifact").style = "display:inline";
+	    document.getElementById("cBoxArtifact").style.display = "inline";
 	    
 	    element = document.getElementById("cBoxArtifact");
 	    element.value = "<%out.print(artifactId);%>";
-	    document.getElementById("cBoxVersion").style = "display:inline";
+	    document.getElementById("cBoxVersion").style.display = "inline";
 				  
 	</script>
 		<%} %>
@@ -692,7 +714,7 @@ if(request.getParameter("thirdParty") != null) {
 				    
 				    element = document.getElementById("cBoxGroup");
 				    element.value = "<%out.print(groupId);%>";
-				    document.getElementById("cBoxArtifact").style = "display:inline";
+				    document.getElementById("cBoxArtifact").style.display = "inline";
 				</script>
 				 <%} %>
 
@@ -705,7 +727,7 @@ if(request.getParameter("thirdParty") != null) {
 
 				    element = document.getElementById("cBoxVersion");
 				    element.value = "<%out.print(version);%>";
-				    document.getElementById("cBoxVersion").style = "display:inline";
+				    document.getElementById("cBoxVersion").style.display = "inline";
 				</script>
 <%} %>
 
@@ -719,7 +741,7 @@ if(request.getParameter("thirdParty") != null) {
     if(request.getParameter("graphType")!=null && request.getParameter("repositoryName")!=null &&
             request.getParameter("snapshots")!=null) {
         json = "digraph {" + loadJson(request.getParameter("graphType"), request.getParameter("repositoryName"),
-                request.getParameter("snapshots"), "") + "}";
+                request.getParameter("snapshots"), "", con) + "}";
     }
 %>
 
@@ -820,9 +842,6 @@ if(request.getParameter("thirdParty") != null) {
             <%} %>
 
     </script>
-
-
-
 
 <%
 
