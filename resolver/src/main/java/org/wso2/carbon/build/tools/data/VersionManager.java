@@ -63,7 +63,6 @@ public class VersionManager {
 				String alterRepository="ALTER TABLE RepositoryTable AUTO_INCREMENT = 1";
 				PreparedStatement alterRepositoryPS = connect.prepareStatement(alterRepository);
 				alterRepositoryPS.execute();
-				System.out.println("deleted");
 			}
 
 			for (int i = 0; i < uniqueDependencies.size(); i++){
@@ -112,7 +111,11 @@ public class VersionManager {
 						insertDependencySt.setString(1, uniqueDependencies.get(i).getGroupId());
 						insertDependencySt.setString(2, uniqueDependencies.get(i).getArtifactId());
 						insertDependencySt.setString(3, uniqueDependencies.get(i).getVersion());
-						insertDependencySt.setString(4, uniqueDependencies.get(i).getLatestVersion());
+						if(uniqueDependencies.get(i).getLatestVersion()!=null){
+							insertDependencySt.setString(4, uniqueDependencies.get(i).getLatestVersion());
+						}else{
+							insertDependencySt.setString(4,"NA");
+						}
 						insertDependencySt.setInt(5, sourceRepoId);
 						insertDependencySt.execute();
 					}
@@ -120,7 +123,11 @@ public class VersionManager {
 
                         String updateDependencyQuery="UPDATE DependencyTable SET LatestVersion = ? WHERE GroupId = ? AND ArtifactId = ? AND Version = ?";
                         PreparedStatement updateDependencySt = connect.prepareStatement(updateDependencyQuery);
-                        updateDependencySt.setString(1, uniqueDependencies.get(i).getLatestVersion());
+                        if(uniqueDependencies.get(i).getLatestVersion()!=null){
+                        	updateDependencySt.setString(1, uniqueDependencies.get(i).getLatestVersion());
+						}else{
+							updateDependencySt.setString(1,"NA");
+						}
                         updateDependencySt.setString(2, uniqueDependencies.get(i).getGroupId());
                         updateDependencySt.setString(3, uniqueDependencies.get(i).getArtifactId());
                         updateDependencySt.setString(4, uniqueDependencies.get(i).getVersion());
